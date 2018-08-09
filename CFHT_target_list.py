@@ -149,6 +149,13 @@ HST_box3 = Polygon(((box3_coord1.ra.degree, box3_coord1.dec.degree), (box3_coord
 x_coord = CFHT_coords.ra.degree 
 y_coord = CFHT_coords.dec.degree 
 
+#check if point is in the HST mask -- this is wrong
+HST_region = np.zeros(len(CFHT_RA)) #0 if not in region, 1 if in region
+for i in range(len(CFHT_RA)):
+	point = Point(x_coord[i], y_coord[i])
+	if (HST_box1.contains(point) == True) | (HST_box2.contains(point) == True) | (HST_box3.contains(point) == True):
+		HST_region[i] = 1
+
 from descartes import PolygonPatch
 fig, ax = plt.subplots(1)
 HST_box1 = PolygonPatch(HST_box1)
@@ -158,20 +165,15 @@ ax.add_patch(HST_box1)
 ax.add_patch(HST_box2)
 ax.add_patch(HST_box3)
 
-
-#check if point is in the HST mask -- this is wrong
-HST_region = np.zeros(len(CFHT_RA)) #0 if not in region, 1 if in region
-for i in range(len(CFHT_RA)):
-	point = Point(x_coord[i], y_coord[i])
-	if (HST_box1.contains(point) == True) | (HST_box2.contains(point) == True) | (HST_box3.contains(point) == True):
-		HST_region[i] = 1
-
 plt.scatter(x_coord, y_coord, alpha=0.3, c=HST_region)
 plt.xlim(23, 24)
 plt.ylim(30, 31)
 plt.colorbar()
 plt.savefig('/Users/amandaquirk/Desktop/checking_HST_region.png')
 plt.close()
+
+plt.hist(HST_region)
+plt.savefig('/Users/amandaquirk/Desktop/checking_HST_region_hist.png')
 print('done with HST region!')
 
 '''

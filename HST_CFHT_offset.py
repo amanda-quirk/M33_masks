@@ -11,7 +11,7 @@ purpose: examine the offset between the coordinate systems of HST and CFHT
 '''
 
 #CFHT data-- using the old i filter; this has already been dust corrected
-CFHT_hdu = fits.open('/Users/amandaquirk/Documents/M33/data/M33.GI.matchcat.extcorr.fits')
+CFHT_hdu = fits.open('/Users/amandaquirk/Documents/M33/Data/M33.GI.matchcat.extcorr.fits')
 CFHT_data = CFHT_hdu[1].data
 CFHT_RA = CFHT_data['RA2'] #degrees
 CFHT_Dec = CFHT_data['DEC2'] #degrees
@@ -19,7 +19,7 @@ CFHT_i = CFHT_data['MAG2_AUTO_0']
 CFHT_g = CFHT_data['MAG1_AUTO_0']
 
 #HST data
-HST_hdu = fits.open('/Users/amandaquirk/Documents/M33/data/m33-merged-F475W-F814W.fits', memmap=True)
+HST_hdu = fits.open('/Users/amandaquirk/Documents/M33/Data/m33-merged-F475W-F814W.fits', memmap=True)
 HST_data = HST_hdu[1].data 
 HST_RA = HST_data['ra'] #degrees
 HST_Dec = HST_data['dec'] #degrees
@@ -286,9 +286,9 @@ idx_4, d2d_4, d3d_4 = CFHT_coords4.match_to_catalog_sky(HST_coords4)
 
 #calculate difference in the matched point's CFHT i' and HST F814W
 mag_diff_region1 = abs(CFHT_i_region1 - F814W_region1[idx_1])
-mag_diff_region2 = abs(CFHT_i_region2 - F814W_region1[idx_2])
-mag_diff_region3 = abs(CFHT_i_region3 - F814W_region1[idx_3])
-mag_diff_region4 = abs(CFHT_i_region4 - F814W_region1[idx_4])
+mag_diff_region2 = abs(CFHT_i_region2 - F814W_region2[idx_2])
+mag_diff_region3 = abs(CFHT_i_region3 - F814W_region3[idx_3])
+mag_diff_region4 = abs(CFHT_i_region4 - F814W_region4[idx_4])
 
 #we only care about the HST data that has been matched
 HST_RA_region1 = HST_RA_region1[idx_1]
@@ -345,14 +345,14 @@ CFHT_i_region4 = CFHT_i_region4[good_match_4]
 # save the data
 # '''
 
-np.savetxt('/Users/amandaquirk/Desktop/CFHT_region1.txt', np.c_[CFHT_RA_region1, CFHT_Dec_region1, CFHT_i_region1], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), i (mag)')
-np.savetxt('/Users/amandaquirk/Desktop/HST_region1.txt', np.c_[HST_RA_region1, HST_Dec_region1, F814W_region1], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag)')
-np.savetxt('/Users/amandaquirk/Desktop/CFHT_region2.txt', np.c_[CFHT_RA_region2, CFHT_Dec_region2, CFHT_i_region2], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), i (mag)')
-np.savetxt('/Users/amandaquirk/Desktop/HST_region2.txt', np.c_[HST_RA_region2, HST_Dec_region2, F814W_region2], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag)')
-np.savetxt('/Users/amandaquirk/Desktop/CFHT_region3.txt', np.c_[CFHT_RA_region3, CFHT_Dec_region3, CFHT_i_region3], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), i (mag)')
-np.savetxt('/Users/amandaquirk/Desktop/HST_region3.txt', np.c_[HST_RA_region3, HST_Dec_region3, F814W_region3], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag)')
-np.savetxt('/Users/amandaquirk/Desktop/CFHT_region4.txt', np.c_[CFHT_RA_region4, CFHT_Dec_region4, CFHT_i_region4], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), i (mag)')
-np.savetxt('/Users/amandaquirk/Desktop/HST_region4.txt', np.c_[HST_RA_region4, HST_Dec_region4, F814W_region4], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag)')
+np.savetxt('/Users/amandaquirk/Documents/M33/Data/CFHT_region1.txt', np.c_[CFHT_RA_region1, CFHT_Dec_region1, CFHT_i_region1], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), i (mag)')
+np.savetxt('/Users/amandaquirk/Documents/M33/Data/HST_region1.txt', np.c_[HST_RA_region1, HST_Dec_region1, F814W_region1], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag)')
+np.savetxt('/Users/amandaquirk/Documents/M33/Data/CFHT_region2.txt', np.c_[CFHT_RA_region2, CFHT_Dec_region2, CFHT_i_region2], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), i (mag)')
+np.savetxt('/Users/amandaquirk/Documents/M33/Data/HST_region2.txt', np.c_[HST_RA_region2, HST_Dec_region2, F814W_region2], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag)')
+np.savetxt('/Users/amandaquirk/Documents/M33/Data/CFHT_region3.txt', np.c_[CFHT_RA_region3, CFHT_Dec_region3, CFHT_i_region3], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), i (mag)')
+np.savetxt('/Users/amandaquirk/Documents/M33/Data/HST_region3.txt', np.c_[HST_RA_region3, HST_Dec_region3, F814W_region3], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag)')
+np.savetxt('/Users/amandaquirk/Documents/M33/Data/CFHT_region4.txt', np.c_[CFHT_RA_region4, CFHT_Dec_region4, CFHT_i_region4], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), i (mag)')
+np.savetxt('/Users/amandaquirk/Documents/M33/Data/HST_region4.txt', np.c_[HST_RA_region4, HST_Dec_region4, F814W_region4], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag)')
 
 '''
 ============================================================================================================================

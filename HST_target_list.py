@@ -40,53 +40,53 @@ print('done with isolation!')
 '''
 step 2) see if stars are in the masks and if so, which mask =================================================================
 '''
-mask1_center = SkyCoord('1h34m02.7303s', '+30d44m11.000s')
-mask2_center = SkyCoord('1h34m07.0646s', '+30d48m07.179s')
-mask3_center = SkyCoord('1h33m52.6102s', '+30d32m15.893s')
-mask4_center = SkyCoord('1h33m57.4856s', '+30d40m12.844s')
-mask5_center = SkyCoord('1h33m55.2257s', '+30d36m14.442s')
+# mask1_center = SkyCoord('1h34m02.7303s', '+30d44m11.000s')
+# mask2_center = SkyCoord('1h34m07.0646s', '+30d48m07.179s')
+# mask3_center = SkyCoord('1h33m52.6102s', '+30d32m15.893s')
+# mask4_center = SkyCoord('1h33m57.4856s', '+30d40m12.844s')
+# mask5_center = SkyCoord('1h33m55.2257s', '+30d36m14.442s')
 
-half_length = 984 / 2 / 3600 #degrees
-half_height = 240 / 2 / 3600 #degrees
+# half_length = 984 / 2 / 3600 #degrees
+# half_height = 240 / 2 / 3600 #degrees
 
-RA_min1 = mask1_center.ra.degree - half_length
-RA_max1 = mask1_center.ra.degree + half_length
-Dec_min1 = mask1_center.dec.degree - half_height
-Dec_max1 = mask1_center.dec.degree + half_height
+# RA_min1 = mask1_center.ra.degree - half_length
+# RA_max1 = mask1_center.ra.degree + half_length
+# Dec_min1 = mask1_center.dec.degree - half_height
+# Dec_max1 = mask1_center.dec.degree + half_height
 
-RA_min2 = mask2_center.ra.degree - half_length
-RA_max2 = mask2_center.ra.degree + half_length
-Dec_min2 = mask2_center.dec.degree - half_height
-Dec_max2 = mask2_center.dec.degree + half_height
+# RA_min2 = mask2_center.ra.degree - half_length
+# RA_max2 = mask2_center.ra.degree + half_length
+# Dec_min2 = mask2_center.dec.degree - half_height
+# Dec_max2 = mask2_center.dec.degree + half_height
 
-RA_min3 = mask3_center.ra.degree - half_length
-RA_max3 = mask3_center.ra.degree + half_length
-Dec_min3 = mask3_center.dec.degree - half_height
-Dec_max3 = mask3_center.dec.degree + half_height
+# RA_min3 = mask3_center.ra.degree - half_length
+# RA_max3 = mask3_center.ra.degree + half_length
+# Dec_min3 = mask3_center.dec.degree - half_height
+# Dec_max3 = mask3_center.dec.degree + half_height
 
-RA_min4 = mask4_center.ra.degree - half_length
-RA_max4 = mask4_center.ra.degree + half_length
-Dec_min4 = mask4_center.dec.degree - half_height
-Dec_max4 = mask4_center.dec.degree + half_height
+# RA_min4 = mask4_center.ra.degree - half_length
+# RA_max4 = mask4_center.ra.degree + half_length
+# Dec_min4 = mask4_center.dec.degree - half_height
+# Dec_max4 = mask4_center.dec.degree + half_height
 
-RA_min5 = mask5_center.ra.degree - half_length
-RA_max5 = mask5_center.ra.degree + half_length
-Dec_min5 = mask5_center.dec.degree - half_height
-Dec_max5 = mask5_center.dec.degree + half_height
+# RA_min5 = mask5_center.ra.degree - half_length
+# RA_max5 = mask5_center.ra.degree + half_length
+# Dec_min5 = mask5_center.dec.degree - half_height
+# Dec_max5 = mask5_center.dec.degree + half_height
 
-mask = np.zeros(len(HST_RA)) #will contain the mask number (as noted above) that the star is in, 0 if outside of masks
-for i in range(len(HST_RA)):
-	if (HST_RA[i] > RA_min1) & (HST_RA[i] < RA_max1) & (HST_Dec[i] > Dec_min1) & (HST_Dec[i] < Dec_max1):
-		mask[i] = 1
-	elif (HST_RA[i] > RA_min2) & (HST_RA[i] < RA_max2) & (HST_Dec[i] > Dec_min2) & (HST_Dec[i] < Dec_max2):
-		mask[i] = 2
-	elif (HST_RA[i] > RA_min3) & (HST_RA[i] < RA_max3) & (HST_Dec[i] > Dec_min3) & (HST_Dec[i] < Dec_max3):
-		mask[i] = 3
-	elif (HST_RA[i] > RA_min4) & (HST_RA[i] < RA_max4) & (HST_Dec[i] > Dec_min4) & (HST_Dec[i] < Dec_max4):
-		mask[i] = 4
-	elif (HST_RA[i] > RA_min5) & (HST_RA[i] < RA_max5) & (HST_Dec[i] > Dec_min5) & (HST_Dec[i] < Dec_max5):
-		mask[i] = 5
-print('done with mask assignment!')
+# mask = np.zeros(len(HST_RA)) #will contain the mask number (as noted above) that the star is in, 0 if outside of masks
+# for i in range(len(HST_RA)):
+# 	if (HST_RA[i] > RA_min1) & (HST_RA[i] < RA_max1) & (HST_Dec[i] > Dec_min1) & (HST_Dec[i] < Dec_max1):
+# 		mask[i] = 1
+# 	elif (HST_RA[i] > RA_min2) & (HST_RA[i] < RA_max2) & (HST_Dec[i] > Dec_min2) & (HST_Dec[i] < Dec_max2):
+# 		mask[i] = 2
+# 	elif (HST_RA[i] > RA_min3) & (HST_RA[i] < RA_max3) & (HST_Dec[i] > Dec_min3) & (HST_Dec[i] < Dec_max3):
+# 		mask[i] = 3
+# 	elif (HST_RA[i] > RA_min4) & (HST_RA[i] < RA_max4) & (HST_Dec[i] > Dec_min4) & (HST_Dec[i] < Dec_max4):
+# 		mask[i] = 4
+# 	elif (HST_RA[i] > RA_min5) & (HST_RA[i] < RA_max5) & (HST_Dec[i] > Dec_min5) & (HST_Dec[i] < Dec_max5):
+# 		mask[i] = 5
+# print('done with mask assignment!')
 
 '''
 step 3) see if stars are bright
@@ -101,4 +101,5 @@ print('done with brightness check!')
 '''
 save the data =================================================================
 '''
-np.savetxt('/Users/amandaquirk/Desktop/HST_target_criteria.txt', np.c_[HST_RA, HST_Dec, F814W, F475W, isolated, mask, mag_cut], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag), F475W (mag), isolation criteria, mask, brightness criteria')
+# np.savetxt('/Users/amandaquirk/Desktop/HST_target_criteria.txt', np.c_[HST_RA, HST_Dec, F814W, F475W, isolated, mask, mag_cut], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag), F475W (mag), isolation criteria, mask, brightness criteria')
+np.savetxt('/Users/amandaquirk/Desktop/HST_target_criteria.txt', np.c_[HST_RA, HST_Dec, F814W, F475W, isolated, mag_cut], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag), F475W (mag), isolation criteria, brightness criteria')

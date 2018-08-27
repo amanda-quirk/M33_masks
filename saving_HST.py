@@ -15,6 +15,6 @@ import h5py
 # output_file.create_dataset("mag", data=F814W)
 # output_file.close() 
 
-input_file = h5py.File('HST_julia_isolated.hdf5', 'r')
+input_file = h5py.File('/Users/amandaquirk/Documents/M33/Data/HST_julia_isolated.hdf5', 'r')
 tag = input_file["isolation_tag"][...] #[...] loads the data; 1 means it is NOT isolated 
 print(len(tag))

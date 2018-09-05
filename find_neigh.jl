@@ -4,7 +4,7 @@ using HDF5
 
 rad2arcsec(r) = 3600 * rad2deg(r)
 
-fileName = "/Users/amandaquirk/Documents/M33/Data/GAIA_region1.hdf5"
+fileName = "/Users/amandaquirk/Documents/M33/Data/file.hdf5"
 dataFile = h5open(fileName, "r")
 ra_all = read(dataFile, "RAs")
 dec_all = read(dataFile, "Decs")

@@ -1,105 +1,136 @@
 from astropy.io import fits
 import numpy as np 
-import matplotlib.pyplot as plt 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+import h5py 
 
 '''
 purpose: sort HST into target lists
-first part of scripts goes through 3 criteria
+
+TO DO: add guide and alignment stars; what is our mag goal?; from HST for CFHT?
 '''
 
-#HST data-- using the old i filter; this has already been dust corrected
-HST_hdu = fits.open('/Users/amandaquirk/Documents/M33/data/m33-merged-F475W-F814W.fits', memmap=True)
-HST_data = HST_hdu[1].data 
-HST_RA = HST_data['ra'] #degrees
-HST_Dec = HST_data['dec'] #degrees
-F814W = HST_data['f814w_vega']
-F475W = HST_data['f475w_vega']
+#will need to reformat for Anil's file-- more variables needed?
+hdu = fits.open('datafile', memmap=True) 
+data = hdu[1].data 
+RA = data['ra'] #degrees
+Dec = data['dec'] #degrees
+F814W = data['f814w_vega']
+F475W = data['f475w_vega']
+label = *******
+A_priority = ******
+
+input_file = h5py.File('/Users/amandaquirk/Documents/M33/Data/HST_julia_isolated.hdf5', 'r') ***** #use 1) saving_HST.py and 2) find_neigh.jl to create this file
+isolated_tag = input_file["isolation_tag"][...] #[...] loads the data; 1 means it is NOT isolated 
+print('Data loaded')
 
 '''
-step 1) see if stars are isolated or not =================================================================
+========================================================================
+ELIMINATE DIM STARS
+only want stars brighter than F814W 22 or F475W 24
 '''
-HST_coords = SkyCoord(HST_RA, HST_Dec, unit=(u.deg, u.deg))
 
-isolated = np.ones((len(HST_RA))) #will contain a 0 if the star doesn't pass the isolation criteria and a 1 if it does
-for i in range(len(HST_coords)):
-	star1 = HST_coords[i] #go through star by star
-	I_tgt = F814W[i]
-	sep = star1.separation(HST_coords) #get distances from that star to all other stars in region
-	close = (sep.arcsecond < 10) & (sep.arcsecond > 0) #narrow our neighbor search for closer stars to save time; don't want to include the target star
-	close_coords = HST_coords[close]
-	close_mag = F814W[close] 
-	close_distances = sep[close]
-	reject = I_tgt > close_mag + (close_distances.arcsecond / 0.8)**1.5 - 2 #rejection criteria
-	reject_neighbors = close_coords[reject] 
-	if len(reject_neighbors) == 0: #don't want to keep any stars that have a neighbor that satisfies the above criteria
-		isolated[i] = 1
-print('done with isolation!')
+bright = (F814W < 22) | (F475W < 24)
+RA = RA[bright]
+Dec = Dec[bright]
+F814W = F814W[bright]
+F475W = F475W[bright]
+label = label[bright]
+isolated_tag = isolated_tag[bright]
+A_priority = A_priority[bright]
+print('Dim stars eliminated')
 
 '''
-step 2) see if stars are in the masks and if so, which mask =================================================================
+========================================================================
+ELIMINATE DIM MWFG Stars
+-as tagged by Anil
+-we want to keep bright ones for guidestars
 '''
-# mask1_center = SkyCoord('1h34m02.7303s', '+30d44m11.000s')
-# mask2_center = SkyCoord('1h34m07.0646s', '+30d48m07.179s')
-# mask3_center = SkyCoord('1h33m52.6102s', '+30d32m15.893s')
-# mask4_center = SkyCoord('1h33m57.4856s', '+30d40m12.844s')
-# mask5_center = SkyCoord('1h33m55.2257s', '+30d36m14.442s')
 
-# half_length = 984 / 2 / 3600 #degrees
-# half_height = 240 / 2 / 3600 #degrees
-
-# RA_min1 = mask1_center.ra.degree - half_length
-# RA_max1 = mask1_center.ra.degree + half_length
-# Dec_min1 = mask1_center.dec.degree - half_height
-# Dec_max1 = mask1_center.dec.degree + half_height
-
-# RA_min2 = mask2_center.ra.degree - half_length
-# RA_max2 = mask2_center.ra.degree + half_length
-# Dec_min2 = mask2_center.dec.degree - half_height
-# Dec_max2 = mask2_center.dec.degree + half_height
-
-# RA_min3 = mask3_center.ra.degree - half_length
-# RA_max3 = mask3_center.ra.degree + half_length
-# Dec_min3 = mask3_center.dec.degree - half_height
-# Dec_max3 = mask3_center.dec.degree + half_height
-
-# RA_min4 = mask4_center.ra.degree - half_length
-# RA_max4 = mask4_center.ra.degree + half_length
-# Dec_min4 = mask4_center.dec.degree - half_height
-# Dec_max4 = mask4_center.dec.degree + half_height
-
-# RA_min5 = mask5_center.ra.degree - half_length
-# RA_max5 = mask5_center.ra.degree + half_length
-# Dec_min5 = mask5_center.dec.degree - half_height
-# Dec_max5 = mask5_center.dec.degree + half_height
-
-# mask = np.zeros(len(HST_RA)) #will contain the mask number (as noted above) that the star is in, 0 if outside of masks
-# for i in range(len(HST_RA)):
-# 	if (HST_RA[i] > RA_min1) & (HST_RA[i] < RA_max1) & (HST_Dec[i] > Dec_min1) & (HST_Dec[i] < Dec_max1):
-# 		mask[i] = 1
-# 	elif (HST_RA[i] > RA_min2) & (HST_RA[i] < RA_max2) & (HST_Dec[i] > Dec_min2) & (HST_Dec[i] < Dec_max2):
-# 		mask[i] = 2
-# 	elif (HST_RA[i] > RA_min3) & (HST_RA[i] < RA_max3) & (HST_Dec[i] > Dec_min3) & (HST_Dec[i] < Dec_max3):
-# 		mask[i] = 3
-# 	elif (HST_RA[i] > RA_min4) & (HST_RA[i] < RA_max4) & (HST_Dec[i] > Dec_min4) & (HST_Dec[i] < Dec_max4):
-# 		mask[i] = 4
-# 	elif (HST_RA[i] > RA_min5) & (HST_RA[i] < RA_max5) & (HST_Dec[i] > Dec_min5) & (HST_Dec[i] < Dec_max5):
-# 		mask[i] = 5
-# print('done with mask assignment!')
+M33 = (label.startswith('MWFG') == False) | ((label.startswith('MWFG') == True) & (((F475W[i] > 15) & (F475W[i] < 18)) | ((F814W[i] > 15) & (F814W[i] < 18)))) *********
+RA = RA[M33]
+Dec = Dec[M33]
+F814W = F814W[M33]
+F475W = F475W[M33]
+label = label[M33]
+isolated_tag = isolated_tag[M33]
+A_priority = A_priority[M33]
+print('Dim MWFG stars eliminated')
 
 '''
-step 3) see if stars are bright
+========================================================================
+ISOLATION
+list 0 will be guide/alignment stars, 1 is for HST stars that based the isolation criteria, 2 is for CFHT stars that passed isolation, 3 is HST data that did NOT pass isolation, and 4 is for CFHT stars that did not pass isolation
 '''
-mag_cut = np.zeros(len(HST_RA)) #will be 0 if the star doesn't pass the magnitude cut and 1 if it does
-for i in range(len(HST_RA)):
-	if (F814W[i] < 22) | (F475W[i] < 24):
-		mag_cut[i] = 1
 
-print('done with brightness check!')
+list_assignment = np.zeros_like(RA) 
+
+for i in range(len(list_assignment)):
+	if isolated_tag[i] == 1:
+		list_assignment[i] = 3
+	else: #guide/alignment stars can be the bright MWFG stars saved above OR bright HST stars
+		if (label.startswith('MWFG') == True) | ((label.startswith('MWFG') == False) & (((F475W[i] > 15) & (F475W[i] < 18)) | ((F814W[i] > 15) & (F814W[i] < 18)))):
+			list_assignment[i] = 0
+		else:
+			list_assignment[i] = 1
+print('List assignment done')
 
 '''
-save the data =================================================================
+========================================================================
+PRIORITY
+will contain the priority of stars: for CFHT based on brightness, for HST is based on CMD space
+HST: (see how this compares to Anil's priorities)
+-10 for specifically targeted stars (like the HMXB)
+-8, 6, 4, 2 for rarest stars to RGB stars respectively 
+-0 for MWFG stars
+CFHT:
+-6: 19 < i < 20.5 or 20 < g < 22.5 
+-4: 20.5 < i < 21. or 22.5 < g < 23 
+-2: 21 < i < 21.5 or 23 < g > 23.5 
+-0: i > 22 or g > 24
+(-1): guidestar
+(-2): alignment star
 '''
-# np.savetxt('/Users/amandaquirk/Desktop/HST_target_criteria.txt', np.c_[HST_RA, HST_Dec, F814W, F475W, isolated, mask, mag_cut], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag), F475W (mag), isolation criteria, mask, brightness criteria')
-np.savetxt('/Users/amandaquirk/Desktop/HST_target_criteria.txt', np.c_[HST_RA, HST_Dec, F814W, F475W, isolated, mag_cut], fmt='%1.16f', delimiter=' ', header='RA (deg), Dec (deg), F814W (mag), F475W (mag), isolation criteria, brightness criteria')
+priority = np.zeros_like(RA) *********
+#is there a faster way to do this?? can i just use Anil's priorities? are there more labels? try to just use Anil's labels so as to avoid these loops; will need to keep the designation of guide/alignment stars so try to eliminated the second big set of loops
+for i in range(len(RA)):
+	if list_assignment[i] == 0:
+		if (label.startswith('MWFG') == True):
+			priority[i] = -1
+		else:
+			priority[i] = -2
+	else:
+		if label[i].startswith('MS'):
+			if (F814W[i] > 21) | (F475W[i] > 23):
+				priority[i] = 2
+			else:
+				priority[i] = 6
+		elif label[i].startswith('AGB'):
+				priority[i] = 8
+		elif label[i].startswith('RGB'):
+			if F814W[i] > 21.5:
+				priority[i] = 2
+			else:
+				priority = 4
+print('Priorities set')
+
+'''
+========================================================================
+COORDINATES
+need to have the coordinates in HA format for dsimulator
+'''
+coords = SkyCoord(RA, Dec, unit=(u.deg, u.deg))
+formated_coords = coords.to_string('hmsdms', alwayssign=False) #will need to edit by hand to change hms dms to : until I find a better way
+print('Coordinates created')
+
+'''
+========================================================================
+SAVE TO FILE
+'''
+ID = np.linspace(0, len(RA), len(RA) + 1)
+JD = np.zeros_like(RA) + 2000.00 #coordinate frame reference
+filter_tag = ['F814W' for x in range(0, len(RA))]
+
+#is this going to be too big as a text file?
+np.savetxt('/Users/amandaquirk/Desktop/HST_target_list.in', np.c_[ID[:-1], formated_coords, JD, F814W, filter_tag, priority, list_assignment], fmt='%s', delimiter='  ', header='original index, coordinates, coordinate reference frame, magnitude, filter, priority, list assignment') 
+

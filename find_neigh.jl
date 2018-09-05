@@ -116,9 +116,9 @@ end
 find_distances()
 # println( time )
 
-writedlm( "/Users/amandaquirk/Documents/M33/Data/isolation_tag_GAIA_region1.txt", rejected)
+#writedlm( "/Users/amandaquirk/Documents/M33/Data/isolation_tag_GAIA_region1.txt", rejected)
 
-#fileName = "HST_julia_isolated.hdf5"
-#dataFile = h5open(fileName, "w")
-#dataFile["isolation_tag"] = rejected
-#close(dataFile)
+fileName = "HST_julia_isolated.hdf5"
+dataFile = h5open(fileName, "w")
+dataFile["isolation_tag"] = rejected
+close(dataFile)

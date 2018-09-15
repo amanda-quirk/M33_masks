@@ -4,7 +4,7 @@ using HDF5
 
 rad2arcsec(r) = 3600 * rad2deg(r)
 
-fileName = "/Users/amandaquirk/Documents/M33/Data/file.hdf5"
+fileName = "/Users/amandaquirk/Documents/M33/Data/CFHT_data_for_isolation.hdf5"
 dataFile = h5open(fileName, "r")
 ra_all = read(dataFile, "RAs")
 dec_all = read(dataFile, "Decs")
@@ -79,7 +79,7 @@ function get_max_dist( i, nNeihg) #given the index and the number of neighbors t
     if dist > window_dist
       break
     end
-    criteria = mag_all[idx] + (dist / 0.8)^1.5 - 2
+    criteria = mag_all[idx] + (dist / 0.8)^2 - 3
     if criteria < star_mag #star NOT isolated if it has a neighbor that fufills this
         rejected[i] = 1
         return
@@ -106,7 +106,7 @@ println( " Computing distances...")
 function find_distances( )
   nNeihg_base = 50
   for i in 1:nPoints
-    if i % 1000 == 0
+    if i % 5000 == 0
         println(i, " ", nPoints)
     end
     max_dist = get_max_dist(i, nNeihg_base)
@@ -118,7 +118,7 @@ find_distances()
 
 #writedlm( "/Users/amandaquirk/Documents/M33/Data/isolation_tag_GAIA_region1.txt", rejected)
 
-fileName = "HST_julia_isolated.hdf5"
+fileName = "/Users/amandaquirk/Documents/M33/Data/CFHT_strict_isolated.hdf5"
 dataFile = h5open(fileName, "w")
 dataFile["isolation_tag"] = rejected
 close(dataFile)

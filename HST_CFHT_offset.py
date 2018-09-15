@@ -539,7 +539,7 @@ def matching_plot(RA1, RA2, Dec1, Dec2, region_name):
 	circle2 = plt.Circle((0,0), .5, color='g', fill=False, linestyle='--')
 	axes.add_artist(circle2)
 	plt.scatter(x, y, c='b', alpha=0.4)
-	plt.xlabel(r'$\rm\Delta RA\times\ DEC\ (arcsec)$')
+	plt.xlabel(r'$\rm\Delta RA\times\ cos(DEC)\ (arcsec)$')
 	plt.ylabel(r'$\rm\Delta DEC\ (arcsec)$')
 	plt.xlim(-1.1, 1.1)
 	plt.ylim(-1.1, 1.1)

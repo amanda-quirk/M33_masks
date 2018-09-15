@@ -20,8 +20,13 @@ F475W = data['f475w_vega']
 label = *******
 A_priority = ******
 
-input_file = h5py.File('/Users/amandaquirk/Documents/M33/Data/HST_julia_isolated.hdf5', 'r') ***** #use 1) saving_HST.py and 2) find_neigh.jl to create this file
-isolated_tag = input_file["isolation_tag"][...] #[...] loads the data; 1 means it is NOT isolated 
+input_file1 = h5py.File('/Users/amandaquirk/Documents/M33/Data/HST_julia_isolated.hdf5', 'r') #use 1) saving_HST.py and 2) find_neigh.jl to create this file
+isolated_tag1 = input_file1["isolation_tag"][...] #[...] loads the data; 1 means it is NOT isolated 
+input_file2 = h5py.File('/Users/amandaquirk/Documents/M33/Data/HST_brick23_julia_isolated.hdf5', 'r') 
+isolated_tag2 = input_file2["isolation_tag"][...] 
+
+#combine isolation tags
+isolation_tag = np.concatenate((isolated_tag1, isolated_tag2), axis=None)
 print('Data loaded')
 
 '''

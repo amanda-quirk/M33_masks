@@ -5,6 +5,10 @@ from astropy import units as u
 import h5py
 
 '''
+purpose: create a list of science targets for the 2018B Keck season
+'''
+
+'''
 ========================================================================================================================
 CFHT data
 using the old i filter; this has already been dust corrected
@@ -50,7 +54,7 @@ for i in range(len(CFHT_list_assignment)):
 	if CFHT_strict_isolated_tag[i] == 1:
 		CFHT_list_assignment[i] = 4
 	else:
-		if ((CFHT_i_mag[i] > 15) & (CFHT_i_mag[i] < 18)) | ((CFHT_g_mag[i] > 15) & (CFHT_g_mag[i] < 18)): #alignment/guide stars
+		if ((CFHT_i_mag[i] > 15) & (CFHT_i_mag[i] < 19.5)) | ((CFHT_g_mag[i] > 15) & (CFHT_g_mag[i] < 19.5)): #alignment/guide stars
 			CFHT_list_assignment[i] = 0
 		else:
 			CFHT_list_assignment[i] = 2
@@ -119,9 +123,9 @@ TAGS
 
 KG_JD = np.zeros_like(KG_RA) + 2000.00 #coordinate frame reference
 KG_filter_tag = ['F814W' for x in range(0, len(KG_RA))]
-KG_selection_tag = np.ones_like(KG_RA) #want these on the mask
+KG_selection_tag = np.zeros_like(KG_RA) #want these on the mask
 KG_list_assignment = np.ones_like(KG_RA)
-KG_priority = np.zeros_like(KG_RA) + 200 #want these on the mask
+KG_priority = np.zeros_like(KG_RA) + 999 #want these on the mask
 
 '''
 ========================================================================
@@ -206,11 +210,11 @@ HST_list_assignment = np.zeros_like(HST_RA)
 for i in range(len(HST_list_assignment)):
 	if (HST_F814W[i] > HST_F814W_crowd[i]):
 		HST_list_assignment[i] = 3
-	else: 
-		if ((HST_F814W[i] > 15) & (HST_F814W[i] < 18)) | ((HST_F475W[i] > 15) & (HST_F475W[i] < 18)):
-			HST_list_assignment[i] = 0 #guide or alignment star
-		else:
-			HST_list_assignment[i] = 1
+	#else: 
+	#	if ((HST_F814W[i] > 15) & (HST_F814W[i] < 18)) | ((HST_F475W[i] > 15) & (HST_F475W[i] < 18)):
+	#		HST_list_assignment[i] = 0 #guide or alignment star
+	else:
+		HST_list_assignment[i] = 1
 
 # '''
 # ========================================================================
@@ -232,31 +236,31 @@ for i in range(len(HST_list_assignment)):
 HST_priority = np.zeros_like(HST_RA)
 
 for i in range(len(HST_RA)):
-	if HST_list_assignment[i] == 0: #guide/alignment stars
-		if HST_ID[i].endswith('_bright') == True:
-			HST_priority[i] = -2 #get spectra for these stars
-		else:
-			HST_priority[i] = -1 #don't get spectra for these stars
-	elif HST_ID[i] == 'RGB':
+	#if HST_list_assignment[i] == 0: #guide/alignment stars
+	#	if HST_ID[i].endswith('_bright') == True:
+	#		HST_priority[i] = -2 #get spectra for these stars
+	#	else:
+	#		HST_priority[i] = -1 #don't get spectra for these stars
+	if HST_ID[i] == 'RGB':
 		if HST_F814W[i] > 21.5:
-			HST_priority[i] = 1
+			HST_priority[i] = 500
 		else:
-			HST_priority[i] = 5
+			HST_priority[i] = 700
 	elif HST_ID[i] == 'MS':
 		if (HST_F814W[i] > 21) | (HST_F475W[i] > 23):
-			HST_priority[i] = 2
+			HST_priority[i] = 550
 		else:
-			HST_priority[i] = 6
+			HST_priority[i] = 750
 	elif HST_ID[i] == 'HeB_faint':
-		HST_priority[i] = 4
+		HST_priority[i] = 100
 	elif HST_ID[i] == 'AGB':
-		HST_priority[i] = 7
+		HST_priority[i] = 400
 	elif HST_ID[i]== 'BHeB_bright':
-		HST_priority[i] = 10
+		HST_priority[i] = 700
 	elif HST_ID[i]== 'RHeB_bright':
-		HST_priority[i] = 12 	
+		HST_priority[i] = 800 	
 	elif HST_ID[i] == 'PNe':
-		HST_priority[i] = 8 #DON'T KNOW WHAT THIS IS!! There are 5 of them
+		HST_priority[i] = 200
 
 '''
 ========================================================================
@@ -309,7 +313,7 @@ COMBINING AND SAVING DATA
 '''
 
 all_IDs = np.concatenate((np.concatenate((KG_ID, HST_labels), axis=None), CFHT_ID), axis = None)
-all_coords = np.concatenate((np.concatenate((KG_formated_coords, HST_formated_coords), axis=None), CFHT_coords), axis = None)
+all_coords = np.concatenate((np.concatenate((KG_formated_coords, HST_formated_coords), axis=None), CFHT_formated_coords), axis = None)
 all_coord_frame = np.concatenate((np.concatenate((KG_JD, HST_JD), axis=None), CFHT_JD), axis = None)
 all_mags = np.concatenate((np.concatenate((KG_F814W, HST_F814W), axis=None), CFHT_i_mag), axis = None)
 all_mag_ref = np.concatenate((np.concatenate((KG_filter_tag, HST_filter_tag), axis=None), CFHT_filter_tag), axis = None)
@@ -317,7 +321,7 @@ all_priorities = np.concatenate((np.concatenate((KG_priority, HST_priority), axi
 all_list_assignments = np.concatenate((np.concatenate((KG_list_assignment, HST_list_assignment), axis=None), CFHT_list_assignment), axis = None)
 all_selection_flag = np.concatenate((np.concatenate((KG_selection_tag, HST_selection_tag), axis=None), CFHT_selection_tag), axis = None)
 
-np.savetxt('/Users/amandaquirk/Desktop/all_target_list.in', np.c_[all_IDs, all_coords, all_coord_frame, all_mags, all_mag_ref, all_priorities, all_list_assignments, all_selection_flag], fmt='%s', delimiter='\t', header='ID, coordinates, coordinate reference frame, magnitude, filter, priority, list assignment, selection flag') 
+np.savetxt('/Users/amandaquirk/Desktop/all_target_list.in', np.c_[all_IDs, all_coords, all_coord_frame, all_mags, all_mag_ref, all_priorities, all_list_assignments, all_selection_flag], fmt="%-s", delimiter='\t', header='ID, coordinates, coordinate reference frame, magnitude, filter, priority, list assignment, selection flag') 
 
 
 

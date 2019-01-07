@@ -103,8 +103,13 @@ TAGS
 '''
     
 CFHT_JD = np.zeros_like(CFHT_RA) + 2000.00 #coordinate frame reference
-CFHT_filter_tag = ['I' for x in range(0, len(CFHT_RA))]
+CFHT_filter_tag1 = ['I' for x in range(0, len(CFHT_RA))]
+CFHT_filter_tag2 = ['G' for x in range(0, len(CFHT_RA))]
 CFHT_selection_tag = np.zeros_like(CFHT_RA)
+CFHT_mag3 = np.zeros_like(CFHT_RA)
+CFHT_mag4 = np.zeros_like(CFHT_RA)
+CFHT_mag5 = np.zeros_like(CFHT_RA)
+CFHT_mag6 = np.zeros_like(CFHT_RA)
 
 '''
 ========================================================================================================================
@@ -113,6 +118,7 @@ Kristen's targets
 KG_data = np.genfromtxt('/Users/amandaquirk/Documents/M33/Data/Kristen_deimos_target_list.txt', dtype=None, names='ID, F475W, F814W, RA, Dec')
 KG_ID = KG_data['ID']
 KG_F814W = KG_data['F814W']
+KG_F475W = KG_data['F475W']
 KG_RA = KG_data['RA']
 KG_Dec = KG_data['Dec']
 
@@ -122,10 +128,15 @@ TAGS
 '''
 
 KG_JD = np.zeros_like(KG_RA) + 2000.00 #coordinate frame reference
-KG_filter_tag = ['F814W' for x in range(0, len(KG_RA))]
+KG_filter_tag1 = ['F814W' for x in range(0, len(KG_RA))]
+KG_filter_tag2 = ['F$75W' for x in range(0, len(KG_RA))]
 KG_selection_tag = np.zeros_like(KG_RA) #want these on the mask
 KG_list_assignment = np.ones_like(KG_RA)
 KG_priority = np.zeros_like(KG_RA) + 999 #want these on the mask
+KG_mag3 = np.zeros_like(KG_RA)
+KG_mag4 = np.zeros_like(KG_RA)
+KG_mag5 = np.zeros_like(KG_RA)
+KG_mag6 = np.zeros_like(KG_RA)
 
 '''
 ========================================================================
@@ -174,6 +185,10 @@ HST_RA = HST_data['RA']
 HST_Dec = HST_data['Dec']
 HST_F814W = HST_data['F814W_VEGA']
 HST_F475W = HST_data['F475W_VEGA']
+HST_F275W = HST_data['F275W_VEGA']
+HST_F336W = HST_data['F336W_VEGA']
+HST_F110W = HST_data['F110W_VEGA']
+HST_F160W = HST_data['F160W_VEGA']
 HST_F814W_crowd = HST_data['F814CROWDMAG']
 HST_F475W_crowd = HST_data['F475CROWDMAG']
 HST_ID = HST_data['TARGTYPE']
@@ -195,6 +210,10 @@ HST_Dec = HST_Dec[HST_isolated]
 HST_F814W = HST_F814W[HST_isolated]
 HST_F814W_crowd = HST_F814W_crowd[HST_isolated]
 HST_F475W = HST_F475W[HST_isolated]
+HST_F110W = HST_F110W[HST_isolated]
+HST_F160W = HST_F160W[HST_isolated]
+HST_F275W = HST_F275W[HST_isolated]
+HST_F336W = HST_F336W[HST_isolated]
 HST_ID = HST_ID[HST_isolated]
 HST_FeH = HST_FeH[HST_isolated]
 HST_ind = HST_ind[HST_isolated]
@@ -268,7 +287,8 @@ TAGS
 '''
 
 HST_JD = np.zeros_like(HST_RA) + 2000.00 #coordinate frame reference
-HST_filter_tag = ['F814W' for x in range(0, len(HST_RA))]
+HST_filter_tag1 = ['F814W' for x in range(0, len(HST_RA))]
+HST_filter_tag2 = ['F475W' for x in range(0, len(HST_RA))]
 HST_selection_tag = np.zeros_like(HST_RA) #want these on the mask
 HST_labels = []
 for i in range(len(HST_RA)):
@@ -315,13 +335,20 @@ COMBINING AND SAVING DATA
 all_IDs = np.concatenate((np.concatenate((KG_ID, HST_labels), axis=None), CFHT_ID), axis = None)
 all_coords = np.concatenate((np.concatenate((KG_formated_coords, HST_formated_coords), axis=None), CFHT_formated_coords), axis = None)
 all_coord_frame = np.concatenate((np.concatenate((KG_JD, HST_JD), axis=None), CFHT_JD), axis = None)
-all_mags = np.concatenate((np.concatenate((KG_F814W, HST_F814W), axis=None), CFHT_i_mag), axis = None)
-all_mag_ref = np.concatenate((np.concatenate((KG_filter_tag, HST_filter_tag), axis=None), CFHT_filter_tag), axis = None)
+all_mags1 = np.concatenate((np.concatenate((KG_F814W, HST_F814W), axis=None), CFHT_i_mag), axis = None)
+all_mag_ref1 = np.concatenate((np.concatenate((KG_filter_tag1, HST_filter_tag1), axis=None), CFHT_filter_tag1), axis = None)
+all_mags2 = np.concatenate((np.concatenate((KG_F475W, HST_F475W), axis=None), CFHT_g_mag), axis = None)
+all_mag_ref2 = np.concatenate((np.concatenate((KG_filter_tag2, HST_filter_tag2), axis=None), CFHT_filter_tag2), axis = None)
 all_priorities = np.concatenate((np.concatenate((KG_priority, HST_priority), axis=None), CFHT_priority), axis = None)
 all_list_assignments = np.concatenate((np.concatenate((KG_list_assignment, HST_list_assignment), axis=None), CFHT_list_assignment), axis = None)
 all_selection_flag = np.concatenate((np.concatenate((KG_selection_tag, HST_selection_tag), axis=None), CFHT_selection_tag), axis = None)
 
-np.savetxt('/Users/amandaquirk/Desktop/all_target_list.in', np.c_[all_IDs, all_coords, all_coord_frame, all_mags, all_mag_ref, all_priorities, all_list_assignments, all_selection_flag], fmt="%-s", delimiter='\t', header='ID, coordinates, coordinate reference frame, magnitude, filter, priority, list assignment, selection flag') 
+all_mags3 = np.concatenate((np.concatenate((KG_mag3, HST_F110W), axis=None), CFHT_mag3), axis = None)
+all_mags4 = np.concatenate((np.concatenate((KG_mag3, HST_F160W), axis=None), CFHT_mag3), axis = None)
+all_mags5 = np.concatenate((np.concatenate((KG_mag3, HST_F275W), axis=None), CFHT_mag3), axis = None)
+all_mags6 = np.concatenate((np.concatenate((KG_mag3, HST_F336W), axis=None), CFHT_mag3), axis = None)
+
+np.savetxt('/Users/amandaquirk/Desktop/all_target_list.in', np.c_[all_IDs, all_coords, all_coord_frame, all_mags1, all_mag_ref1, all_mags2, all_mag_ref2, all_priorities, all_list_assignments, all_selection_flag, all_mags3, all_mags4, all_mags5, all_mags6], fmt="%-s", delimiter='\t', header='ID, coordinates, coordinate reference frame, magnitude1, filter1, magnitude 2, filter 2, priority, list assignment, selection flag, HST F110W, HST F160W, HST F275W, HST F336W') 
 
 
 

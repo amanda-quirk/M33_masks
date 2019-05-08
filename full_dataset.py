@@ -103,6 +103,7 @@ for i in range(len(zspec_IDs)):
 #===========================================================================================================================================
 
 #save to file
+np.savetxt('/Users/amandaquirk/Desktop/M33_combined_AY9.txt', np.c_[IDs, RA, Dec, F275W, F336W, F475W, F814W, F110W, F160W, redshift, errors, zquals, abands], fmt="%-s", delimiter='\t', header='ID, RA, Dec, F275W, F336W, F475W, F814W, F110W, F160W, redshift, velocity error, zquality, A band') 
 
 
 

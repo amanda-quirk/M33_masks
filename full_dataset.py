@@ -9,17 +9,19 @@ this adds together the photomerty and the spectroscopy for the 2018B masks
 '''
 
 def import_data(maskname): #import spectroscopy data from zspec files
-	hdu = fits.open('/Users/amandaquirk/Desktop/zspec.{}.fits'.format(maskname))
+	hdu = fits.open('/Users/amandaquirk/Documents/M33/Data/zspecs/zspec.{}.fits'.format(maskname))
 	data = hdu[1].data
 	z = data['Z'] #redshift
 	error = data['Z_ERR'] #error on the velocity
 	zqual = data['ZQUALITY'] #eventually only want to use 1, 3, or 4
 	aband = data['ABAND']
 	ID = data['OBJNAME']
-	return z, error, zqual, aband, ID  
+	time = data['MJD']
+	return z, error, zqual, aband, ID, time   
 
-z_a1, error_a1, zqual_a1, aband_a1, ID_a1 = import_data('A1M33P')
-z_b1, error_b1, zqual_b1, aband_b1, ID_b1 = import_data('B1M33P')
+z_a1, error_a1, zqual_a1, aband_a1, ID_a1, time_a1 = import_data('A1M33P')
+z_b1, error_b1, zqual_b1, aband_b1, ID_b1, time_b1 = import_data('B1M33P')
+z_c1, error_c1, zqual_c1, aband_c1, ID_c1, time_c1 = import_data('C1M33P')
 
 #data from target list (RA, Dec, and photometry)
 ref_data = np.genfromtxt('/Users/amandaquirk/Documents/M33/Data/all_target_list.in', dtype=None, names='ID, ras, decs, frame, magnitude1, filter1, magnitude2, filter2, priority, list_assignment, selection_flag, HST_F110W, HST_F160W, HST_F275W, HST_F336W')
@@ -38,11 +40,12 @@ mag5 = ref_data['HST_F275W']
 mag6 = ref_data['HST_F336W']
 
 #combining all of the zspec files together
-zspec_IDs = list(ID_a1) + list(ID_b1)
-zspec_errors = list(error_a1) + list(error_b1)
-zspec_zquals = list(zqual_a1) + list(zqual_b1)
-zspec_aband = list(aband_a1) + list(aband_b1)
-zspec_zs = list(z_a1) + list(z_b1)
+zspec_IDs = list(ID_a1) + list(ID_b1) + list(ID_c1)
+zspec_errors = list(error_a1) + list(error_b1) + list(error_c1)
+zspec_zquals = list(zqual_a1) + list(zqual_b1) + list(zqual_c1)
+zspec_aband = list(aband_a1) + list(aband_b1) + list(aband_c1)
+zspec_zs = list(z_a1) + list(z_b1) + list(z_c1)
+zspec_times = list(time_a1) + list(time_b1) + list(time_c1)
 
 #matching the photometry to the spectroscopy -- ONLY FOR HST SELECTED STARS RIGHT NOW
 F475W = []
@@ -58,6 +61,7 @@ abands = []
 RA = []
 Dec = []
 IDs = []
+times = []
 for i in range(len(zspec_IDs)):
 	if zspec_IDs[i].startswith('CFHT') == False and zspec_IDs[i].startswith('serendip') == False: #later go in and add the CFHT data and the serendips
 		N = ref_ID.index(zspec_IDs[i])
@@ -74,6 +78,7 @@ for i in range(len(zspec_IDs)):
 		errors.append(zspec_errors[i])
 		abands.append(zspec_aband[i])
 		redshift.append(zspec_zs[i])
+		times.append(zspec_times[i])
 		#print(zspec_IDs[i], ref_ID[N])
 
 #some plotting to test match===================================================================================================================
@@ -103,7 +108,7 @@ for i in range(len(zspec_IDs)):
 #===========================================================================================================================================
 
 #save to file
-np.savetxt('/Users/amandaquirk/Desktop/M33_combined_AY9.txt', np.c_[IDs, RA, Dec, F275W, F336W, F475W, F814W, F110W, F160W, redshift, errors, zquals, abands], fmt="%-s", delimiter='\t', header='ID, RA, Dec, F275W, F336W, F475W, F814W, F110W, F160W, redshift, velocity error, zquality, A band') 
+np.savetxt('/Users/amandaquirk/Desktop/M33_combined_AY9.txt', np.c_[IDs, RA, Dec, F275W, F336W, F475W, F814W, F110W, F160W, redshift, errors, zquals, abands, times], fmt='%s', delimiter='\t', header='ID, RA, Dec, F275W, F336W, F475W, F814W, F110W, F160W, redshift, velocity error, zquality, A band, MJD') 
 
 
 

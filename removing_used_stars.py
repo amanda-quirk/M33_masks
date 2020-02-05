@@ -4,9 +4,9 @@ import numpy as np
 purpose: update the target list by removing bright stars that have already been observed (keep guide/alignment stars and keep dim stars)
 '''
 
-mask_output_file = 'E1M33P.out' #file from dsimulator
-bright = 21 #magnitude cutoff between bright and dim
-new_input_file = 'updated_target_list_maskE'
+mask_output_file = 'mask1.out' #file from dsimulator
+bright = 0 #magnitude cutoff between bright and dim
+new_input_file = 'updated_target_list_mask1'
 
 #read in the data
 data = np.genfromtxt('/Users/amandaquirk/Desktop/{}'.format(mask_output_file), dtype=None, names='ID, ras, decs, frame, mag, filter, priority, list, selection')

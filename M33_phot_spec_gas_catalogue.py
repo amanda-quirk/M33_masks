@@ -13,7 +13,7 @@ from astropy import units as u
 
 #import zspec data ==================================================================================================================================
 def import_data(maskname): #import spectroscopy data from zspec files
-	hdu = fits.open('/Users/amandaquirk/Documents/M33/Data/zspecs/zspec.{}.fits'.format(maskname))
+	hdu = fits.open('/Volumes/Titan/M33/Data/zspecs/zspec.{}.fits'.format(maskname))
 	data = hdu[1].data
 	z = data['Z'] #redshift
 	error = data['Z_ERR'] #error on the velocity
@@ -224,7 +224,7 @@ sorted_masks = list(unique_masks) + list(dup_mask)
 
 #pulling in the photometry from the target lists ==========================================================================================
 def import_phot(path):
-	ref_data = np.genfromtxt('/Users/amandaquirk/Documents/M33/{}'.format(path), dtype=None, names='ID, ras, decs, frame, F814W, filter1, F475W, filter2, priority, list_assignment, selection_flag, F110W, F160W, F275W, F336W')
+	ref_data = np.genfromtxt('/Volumes/Titan/M33/{}'.format(path), dtype=None, names='ID, ras, decs, frame, F814W, filter1, F475W, filter2, priority, list_assignment, selection_flag, F110W, F160W, F275W, F336W')
 	#pull out the fields that Laurent will need / I want for organizational purposes later
 	ref_ID = ref_data['ID']
 	ref_ID = [a.decode("utf-8") for a in ref_ID]
@@ -237,7 +237,7 @@ def import_phot(path):
 	return ref_ID, mag1, mag2, mag3, mag4, mag5, mag6
 
 #bringing in the photometry from the 2018 and 2019 data
-paths = ['Data/all_target_list.in', 'Data/target_list_RGB_2019_6filt.in', 'Masks/2019b/Dec/final/target_list_RGB_2019_expanded_6filt.in']
+paths = ['Data/all_target_list.in', 'Data/target_list_RGB_2019_6filt.in', 'Data/target_list_RGB_2019_expanded_6filt.in']
 
 #the arrays below will contain many duplicates but there's no need to remove them
 ref_IDs = []
@@ -296,7 +296,7 @@ for i in range(len(sorted_ids)):
 
 #add in the gas ============================================================================================================================
 #THIS WILL BE INCOMPLETE UNTIL I GET THE NEW FILE FROM LAURENT
-gas_data = np.genfromtxt('/Users/amandaquirk/Documents/M33/Data/velocity-m33-hi-co-ha.ascii', dtype=None, names='ID, ras, decs, mag, filter, HI, CO, Ha')
+gas_data = np.genfromtxt('/Volumes/Titan/M33/Data/velocity-m33-hi-co-ha.ascii', dtype=None, names='ID, ras, decs, mag, filter, HI, CO, Ha')
 gas_IDs = gas_data['ID']
 gas_IDs = [a.decode("utf-8") for a in gas_IDs]
 gas_HI = gas_data['HI'] #LSR frame
@@ -311,9 +311,18 @@ missing_gas_count = 0
 for i in range(len(sorted_ids)):
 	if sorted_ids[i] in gas_IDs:
  		N = gas_IDs.index(sorted_ids[i])
- 		sorted_HI.append(gas_HI[N])
- 		sorted_CO.append(gas_CO[N])
- 		sorted_Ha.append(gas_Ha[N])
+ 		if gas_HI[N] < 900:
+ 			sorted_HI.append(gas_HI[N])
+ 		elif gas_HI[N] > 900: #Laurent put in 999 for values he doesn't have a measurement 
+ 			sorted_HI.append(np.nan)
+ 		if gas_CO[N] < 900:
+ 			sorted_CO.append(gas_CO[N])
+ 		elif gas_CO[N] > 900:
+ 			sorted_CO.append(np.nan)
+ 		if gas_Ha[N] < 900:
+ 			sorted_Ha.append(gas_Ha[N])
+ 		elif gas_Ha[N] > 900:
+ 			sorted_Ha.append(np.nan)
 	else:
 		missing_gas_count += 1
 		sorted_HI.append(np.nan)

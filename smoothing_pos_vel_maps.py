@@ -10,8 +10,11 @@ from matplotlib import rc
 from matplotlib.ticker import MaxNLocator
 from matplotlib import patches
 
-#read in catalogue ===================================================================================================================================
-data = np.genfromtxt('/Users/amandaquirk/Documents/M33/Data/M33_2018b_phot_spec.txt', dtype=None, names='ID, ra, dec, F275W, F336W, F475W, F814W, F110W, F160W, z, vel, err, zqual, aband, time, mask, age, HI, CO, Ha')
+#set size of smoothing circle
+circle_radius = 150 #arcsec
+
+#read in catalogue ===========================================================================================================
+data = np.genfromtxt('/Volumes/Titan/M33/Data/M33_2018b_phot_spec.txt', dtype=None, names='ID, ra, dec, F275W, F336W, F475W, F814W, F110W, F160W, z, vel, err, zqual, aband, time, mask, age, HI, CO, Ha')
 
 ID = data['ID']
 ID = np.array([a.decode("utf-8") for a in ID])
@@ -30,7 +33,7 @@ Ha = data['Ha']
 mask = data['mask']
 mask = [a.decode("utf-8") for a in mask]
 
-#only look at things that have high enough zqual =====================================================================================================
+#only look at things that have high enough zqual =============================================================================
 good_qual = (zqual == 1) | (zqual > 2)
 
 ID = ID[good_qual]
@@ -44,13 +47,13 @@ HI = HI[good_qual]
 CO = CO[good_qual]
 Ha = Ha[good_qual]
 
-#separate into age bins ==============================================================================================================================
+#separate into age bins ======================================================================================================
 MS = age == 'MS'
 AGB = age == 'AGB'
 RGB = (age == 'RGB') | ('R' in mask == True)
 HeB = (age == 'RHeB') | (age == 'BHeB') | (age == 'HeB') #want to separate this out or lump into diff groups?
 
-#smoothing ===========================================================================================================================================
+#smoothing ===================================================================================================================
 #function to calculate the weights
 def calc_weights(err):
         return 1 / (err**2)
@@ -90,7 +93,7 @@ def smoothing(ids, zqual, ras, decs, errs, HI, CO, Ha, velocities, circleSize):
 	CO = CO[reliable]
 	Ha = Ha[reliable]
 	velocities = velocities[reliable]
-	ID = ids[reliable]
+	ids = ids[reliable]
 	zqual = zqual[reliable]
 
 	weight = calc_weights(errs) #error is already adjusted so can just calculate the weights
@@ -115,16 +118,16 @@ def smoothing(ids, zqual, ras, decs, errs, HI, CO, Ha, velocities, circleSize):
 			zqual_goodcenter.append(zqual[i])
 	return ra_goodcenter, dec_goodcenter, smoothed_v, smoothed_err, dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter
 
-MS_smoothed_data = smoothing(ID[MS], zqual[MS], ra[MS], dec[MS], err[MS], HI[MS], CO[MS], Ha[MS], vel[MS], 300)
+MS_smoothed_data = smoothing(ID[MS], zqual[MS], ra[MS], dec[MS], err[MS], HI[MS], CO[MS], Ha[MS], vel[MS], circle_radius)
 print('done with MS smoothing')
-AGB_smoothed_data = smoothing(ID[AGB], zqual[AGB], ra[AGB], dec[AGB], err[AGB], HI[AGB], CO[AGB], Ha[AGB], vel[AGB], 300)
+AGB_smoothed_data = smoothing(ID[AGB], zqual[AGB], ra[AGB], dec[AGB], err[AGB], HI[AGB], CO[AGB], Ha[AGB], vel[AGB], circle_radius)
 print('done with AG smoothing')
-HeB_smoothed_data = smoothing(ID[HeB], zqual[HeB], ra[HeB], dec[HeB], err[HeB], HI[HeB], CO[HeB], Ha[HeB], vel[HeB], 300)
+HeB_smoothed_data = smoothing(ID[HeB], zqual[HeB], ra[HeB], dec[HeB], err[HeB], HI[HeB], CO[HeB], Ha[HeB], vel[HeB], circle_radius)
 print('done with HeB smoothing')
-RGB_smoothed_data = smoothing(ID[RGB], zqual[RGB], ra[RGB], dec[RGB], err[RGB], HI[RGB], CO[RGB], Ha[RGB], vel[RGB], 300)
+RGB_smoothed_data = smoothing(ID[RGB], zqual[RGB], ra[RGB], dec[RGB], err[RGB], HI[RGB], CO[RGB], Ha[RGB], vel[RGB], circle_radius)
 print('done with RGB smoothing')
 
-#velocity position maps ==============================================================================================================================
+#velocity position maps ======================================================================================================
 def position_map(ra, dec, ind_vel, ra_smoothed, dec_smoothed, vel_smoothed, dispersion, circle_size, scale_factor, age): #individual by age for now
 	#convert to xi and eta centered on M33
 	m33 = SkyCoord(23.4583 * u.deg, 30.6602 * u.deg)
@@ -140,8 +143,8 @@ def position_map(ra, dec, ind_vel, ra_smoothed, dec_smoothed, vel_smoothed, disp
 	eta_sm = eta_sm.degree
 
 	#set up the diagram of smoothing circle
-	centerx = 10
-	centery = 0
+	centerx = -3
+	centery = -3
 	radius = circle_size / 60 / 60 * scale_factor
 	c0 = plt.Circle((centerx, centery), radius, color='k', fill=False)
 	c1 = plt.Circle((centerx, centery), radius, color='k', fill=False)
@@ -154,7 +157,7 @@ def position_map(ra, dec, ind_vel, ra_smoothed, dec_smoothed, vel_smoothed, disp
 	e2 = patches.Ellipse((0, 0), xlength, ylength, angle=180 - 22, linewidth=.5, fill=False, zorder=0)
 
 	#plot the stuff -- first column = individual v_LOS; second = smoothed v_LOS; third = velocity dispersion
-	f, axes = plt.subplots(1,3, sharey=True, sharex=False, figsize=(11.1,10.26 / 4))
+	f, axes = plt.subplots(1,3, sharey=True, sharex=False, figsize=(11.1, 14 / 4))
 
 	axes[0].add_patch(e0)
 	axes[1].add_patch(e1)
@@ -165,7 +168,7 @@ def position_map(ra, dec, ind_vel, ra_smoothed, dec_smoothed, vel_smoothed, disp
 
 	im0 = axes[0].scatter(xi_ind * scale_factor, eta_ind * scale_factor, c=ind_vel, cmap='plasma', s=6, vmin=-260,vmax=-100) 
 	im1 = axes[1].scatter(xi_sm * scale_factor, eta_sm * scale_factor, c=vel_smoothed, cmap='plasma', s=6, vmin=-260,vmax=-100) 
-	im2 = axes[2].scatter(xi_sm * scale_factor, eta_sm * scale_factor, c=dispersion, cmap='viridis', s=6, vmin=0,vmax=90) 
+	im2 = axes[2].scatter(xi_sm * scale_factor, eta_sm * scale_factor, c=dispersion, cmap='viridis', s=6, vmin=0,vmax=70) 
 
 	for ax in axes:
 		ax.set_xlabel(r'$\xi\ (kpc)$', fontsize=13)
@@ -179,8 +182,10 @@ def position_map(ra, dec, ind_vel, ra_smoothed, dec_smoothed, vel_smoothed, disp
 		nbins = 7
 		ax.yaxis.set_major_locator(MaxNLocator(nbins=nbins, prune='upper'))
 		ax.minorticks_on()
+		ax.axes.invert_xaxis()
 		for axis in ['top','bottom','left','right']:
 		        ax.spines[axis].set_linewidth(1)
+		ax.axis('equal')
 
 	axes[0].set_ylabel(r'$\eta\ (kpc)$', fontsize=13)
 	f.subplots_adjust(right=0.885)
@@ -200,12 +205,12 @@ def position_map(ra, dec, ind_vel, ra_smoothed, dec_smoothed, vel_smoothed, disp
 	plt.subplots_adjust(wspace=0, hspace=0)
 	plt.savefig('/Users/amandaquirk/Desktop/M33_maps_{}.png'.format(age), bbox_inches='tight')
 
-position_map(ra[MS], dec[MS], vel[MS], MS_smoothed_data[0], MS_smoothed_data[1], MS_smoothed_data[2], MS_smoothed_data[4], 300, 14.12, 'MS')
-position_map(ra[AGB], dec[AGB], vel[AGB], AGB_smoothed_data[0], AGB_smoothed_data[1], AGB_smoothed_data[2], AGB_smoothed_data[4], 300, 14.12, 'AGB')
-position_map(ra[HeB], dec[HeB], vel[HeB], HeB_smoothed_data[0], HeB_smoothed_data[1], HeB_smoothed_data[2], HeB_smoothed_data[4], 300, 14.12, 'HeB')
-position_map(ra[RGB], dec[RGB], vel[RGB], RGB_smoothed_data[0], RGB_smoothed_data[1], RGB_smoothed_data[2], RGB_smoothed_data[4], 300, 14.12, 'RGB')
+position_map(ra[MS], dec[MS], vel[MS], MS_smoothed_data[0], MS_smoothed_data[1], MS_smoothed_data[2], MS_smoothed_data[4], circle_radius, 14.12, 'MS')
+position_map(ra[AGB], dec[AGB], vel[AGB], AGB_smoothed_data[0], AGB_smoothed_data[1], AGB_smoothed_data[2], AGB_smoothed_data[4], circle_radius, 14.12, 'AGB')
+position_map(ra[HeB], dec[HeB], vel[HeB], HeB_smoothed_data[0], HeB_smoothed_data[1], HeB_smoothed_data[2], HeB_smoothed_data[4], circle_radius, 14.12, 'HeB')
+position_map(ra[RGB], dec[RGB], vel[RGB], RGB_smoothed_data[0], RGB_smoothed_data[1], RGB_smoothed_data[2], RGB_smoothed_data[4], circle_radius, 14.12, 'RGB')
 
-#save the data into catalogues  ======================================================================================================================
+#save the data into catalogues  ==============================================================================================
 #I am being lazy and saving as separate files. might be easier in the future to save as one file but who knows
 np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_smoothed_kinematics_MS.txt', np.c_[MS_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
 np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_smoothed_kinematics_AGB.txt', np.c_[AGB_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')

@@ -79,14 +79,14 @@ def deprojected_r(ra, dec): #ha and deg
 
 	#throwing in PA here to be used later
 	angle = np.arctan(y / x ) * 180 / np.pi #deg
-	PA = []
+	PA = [] #east of north
 	for i in range(len(angle)):
 		if y[i] < 0:
 			PA.append(angle[i] + 180)
 		else:
 			PA.append(angle[i])
 
-	#calculate the distance from the star to the center using angular distance
+	#calculate the distance from the star to the center 
 	inclination_factor = np.cos(54 * np.pi / 180)**2 #inclination of M33 to deproject
 	ang_dist = np.sqrt(x**2 + y**2 / inclination_factor)
 	dist = ang_dist * 14.12 #convet from deg to kpc
@@ -111,7 +111,7 @@ def deprojected_r(ra, dec): #ha and deg
 
 #apply the tilted ring model to calculate v_rot ==============================================================================
 #first we need to assign an inclination and PA from the tilted ring to each star
-def assign_TR_params(dist): #stellar distance to center; kpc
+def assign_TR_params(dist): #stellar distance to center in kpc
 	#read in the titled ring parameters
 	r_kpc, i_tr, PA_tr = np.loadtxt('../Data/M33_HI_tilted_ring.txt', usecols=(1, 4, 5,), unpack=True)
 
@@ -124,7 +124,7 @@ def assign_TR_params(dist): #stellar distance to center; kpc
 		smallest_diff = min(pos_diff) #find the smallest positive difference
 		ring = list(difference).index(smallest_diff) #find where in the original list the right ring is
 		assigned_i[i] = i_tr[ring]
-		assigned_PA = PA_tr[ring] #should i subtract 180 from these?
+		assigned_PA[i] = PA_tr[ring] #Kam seems to define PA as my definition + 180 but this doesn't matter for tangent
 
 	return assigned_i, assigned_PA
 
@@ -132,8 +132,8 @@ def assign_TR_params(dist): #stellar distance to center; kpc
 def vrot_tr_AD(vstar, vHI, vCO, vHa, ra, dec): #km/s, ha, deg
 	#first use the previous functions to get PA and radius of the star
 	deproj_data = deprojected_r(ra, dec)
-	PA_star = deproj_data[2] #deg
-	dist = deproj_data[3] #kpc
+	PA_star = np.array(deproj_data[2]) #deg
+	dist = np.array(deproj_data[3]) #kpc
 
 	#grab the TR values
 	i_TR, PA_TR = assign_TR_params(dist)
@@ -142,6 +142,7 @@ def vrot_tr_AD(vstar, vHI, vCO, vHa, ra, dec): #km/s, ha, deg
 	vsys = -180 #km/s
 	deg_2_rad = np.pi / 180 #to be used for trig
 
+	#tilted ring model --------
 	sqrt_term = np.sqrt(1 + (np.tan((PA_TR - PA_star) * deg_2_rad)**2 / np.cos(i_TR * deg_2_rad)**2))
 	star_vel_term = (vstar - vsys) / np.sin(i_TR * deg_2_rad)
 	HI_vel_term = (vHI - vsys) / np.sin(i_TR * deg_2_rad)
@@ -152,6 +153,14 @@ def vrot_tr_AD(vstar, vHI, vCO, vHa, ra, dec): #km/s, ha, deg
 	HI_vrot = abs(HI_vel_term) * sqrt_term
 	CO_vrot = abs(CO_vel_term) * sqrt_term
 	Ha_vrot = abs(Ha_vel_term) * sqrt_term
+	#----------
+
+	#simple model from Kam et al. 2017; projected ------
+	# star_vrot = (vstar - vsys) / (np.cos(PA_star * deg_2_rad) * np.sin(i_TR))
+	# HI_vrot =(vHI - vsys) / (np.cos(PA_star * deg_2_rad) * np.sin(i_TR))
+	# CO_vrot =(vCO - vsys) / (np.cos(PA_star * deg_2_rad) * np.sin(i_TR))
+	# Ha_vrot =(vHa - vsys) / (np.cos(PA_star * deg_2_rad) * np.sin(i_TR))
+	#-------
 
 	AD_HI = HI_vrot - star_vrot
 	AD_CO = CO_vrot - star_vrot
@@ -190,6 +199,7 @@ def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs): #will return a file of vro
 	plt.scatter(dist, Ha_vrot, c='b', label='Ha')
 	plt.xlabel('Deprojected R [kpc]')
 	plt.ylabel('V rot titled ring [kpc]')
+	plt.ylim(0, 300)
 	plt.legend()
 	plt.savefig('/Users/amandaquirk/Desktop/{}_rc.png'.format(age))
 	plt.close()
@@ -201,14 +211,16 @@ def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs): #will return a file of vro
 	AD_Ha = AD_Ha[~np.isnan(AD_Ha)]
 
 	single_plot()
-	plt.hist(AD_HI, bins=range(-300, 350, 10), label='HI' + r'$={}$'.format(round(np.median(AD_HI),2)) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, linestyle='--', stacked=True, fill=False, color='darkgrey')
-	plt.hist(AD_CO, bins=range(-300, 350, 10), label='CO' + r'$={}$'.format(round(np.median(AD_CO),2)) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, linestyle='--', stacked=True, fill=True, hatch='//', color='teal')
-	plt.hist(AD_Ha, bins=range(-300, 350, 10), label='Ha' + r'$={}$'.format(round(np.median(AD_Ha),2)) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='blue')
+	plt.hist(AD_HI, bins=range(-100, 200, 10), label='HI' + r'$={}$'.format(round(np.median(AD_HI),2)) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, linestyle='--', stacked=True, fill=False, color='darkgrey')
+	plt.hist(AD_CO, bins=range(-100, 200, 10), label='CO' + r'$={}$'.format(round(np.median(AD_CO),2)) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, linestyle='--', stacked=True, fill=True, hatch='//', color='teal')
+	plt.hist(AD_Ha, bins=range(-100, 200, 10), label='Ha' + r'$={}$'.format(round(np.median(AD_Ha),2)) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='blue')
 	plt.legend()
 	plt.savefig('/Users/amandaquirk/Desktop/{}_ad.png'.format(age))
 	plt.close()
 
 outputs(HeB_vel, HeB_HI, HeB_CO, HeB_Ha, HeB_ra, HeB_dec, 'HeB', HeB_ID)
+outputs(AGB_vel, AGB_HI, AGB_CO, AGB_Ha, AGB_ra, AGB_dec, 'AGB', AGB_ID)
+outputs(RGB_vel, RGB_HI, RGB_CO, RGB_Ha, RGB_ra, RGB_dec, 'RGB', RGB_ID)
 
 
 

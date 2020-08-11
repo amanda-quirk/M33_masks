@@ -22,24 +22,27 @@ def deprojected_r(ra, dec): #ha and deg
 	#first deproject xi and eta
 	sine = np.sin(22 * np.pi / 180) #sine of M33's PA
 	cosine = np.cos(22 * np.pi / 180) #cosine of M33's PA
-	x = xi * cosine - eta * sine #deg
-	y = eta * cosine + xi * sine #deg
+	beta = xi * cosine - eta * sine #deg, y major axis beta
+	alpha = eta * cosine + xi * sine #deg, x minor axis alpha
 
 	#throwing in PA here to be used later
-	angle = np.arctan(y / x ) * 180 / np.pi #deg
+	angle = np.arctan(beta / alpha) * 180 / np.pi #deg
 	PA = [] #east of north
 	for i in range(len(angle)):
-		if y[i] < 0:
+		if beta[i] < 0:
 			PA.append(angle[i] + 180)
 		else:
 			PA.append(angle[i])
 
 	#calculate the distance from the star to the center 
 	inclination_factor = np.cos(54 * np.pi / 180)**2 #inclination of M33 to deproject
-	ang_dist = np.sqrt(x**2 + y**2 / inclination_factor)
+	ang_dist = np.sqrt(alpha**2 +  (beta / inclination_factor)**2)
 	dist = ang_dist * 14.12 #convet from deg to kpc
 
-	return x, y, PA, dist #deg, deg, deg, kpc
+	#calculating azimuthal angle
+	theta = np.degrees(np.arctan2(beta / inclination_factor, alpha))
+
+	return alpha, beta, PA, dist, theta #deg, deg, deg, kpc, deg
 
 #apply the tilted ring model to calculate v_rot ==============================================================================
 #first we need to assign an inclination and PA from the tilted ring to each star
@@ -81,28 +84,21 @@ def vrot_tr(vel, ra, dec): #km/s, ha, deg
 
 	return vrot
 
-#=========================================================================================================================
-#calculate radii
+def theta_vrot_tr(vel, ra, dec)#km/s, ha, deg
+	#first use the previous functions to get PA and radius of the star
+	deproj_data = deprojected_r(ra, dec)
+	PA_star = np.array(deproj_data[2]) #deg
+	dist = np.array(deproj_data[3]) #kpc
+	theta = np.array(deproj_data[4]) #deg
 
-def deprojected_radii(ra, dec): #deg and deg 
-	#convert to xi and eta centered on M33
-	m33 = SkyCoord(23.4583 * u.deg, 30.6602 * u.deg)
-	sc = SkyCoord(ra=ra, dec=dec, unit=(u.deg,u.deg))
-	c_inm33 = sc.transform_to(m33.skyoffset_frame())
-	xi, eta = c_inm33.lon, c_inm33.lat
-	xi = xi.degree
-	eta = eta.degree
+	#grab the TR values
+	i_TR, PA_TR = assign_TR_params(dist) #deg, deg
 
-	#first deproject xi and eta
-	sine = np.sin(22 * np.pi / 180) #sine of M33's PA
-	cosine = np.cos(22 * np.pi / 180) #cosine of M33's PA
-	x = xi * cosine - eta * sine #deg
-	y = eta * cosine + xi * sine #deg
+	#use the formula separately for star vels and gases vels
+	vsys = -180 #km/s
+	deg_2_rad = np.pi / 180 #to be used for trig
 
-	#calculate the distance from the star to the center 
-	inclination_factor = np.cos(54 * np.pi / 180)**2 #inclination of M33 to deproject
-	ang_dist = np.sqrt(x**2 + y**2 / inclination_factor)
-	dist = ang_dist * 14.12 #convet from deg to kpc
-
-	return dist #kpc
+	#tilted ring model, as Karrie is using it -- Karrie first uses M33's overall inc and PA to calculate alpha and beta and r, then she assigns it to a ring, then she recalculates alpha beta and r using the PA and inc of the ring i/o M33 and then she calculates theta and vrot
+	vrot = (vel - vsys) / (np.cos(theta * deg_2_rad) * np.sin(i_TR))
+	return vrot
 

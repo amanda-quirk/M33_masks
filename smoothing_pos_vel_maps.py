@@ -11,7 +11,8 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib import patches
 
 #set size of smoothing circle
-circle_radius = 150 #arcsec
+circle_radius = 75 #arcsec
+num_neighbors = 10
 
 #read in catalogue ===========================================================================================================
 data = np.genfromtxt('/Volumes/Titan/M33/Data/M33_2018b_phot_spec.txt', dtype=None, names='ID, ra, dec, F275W, F336W, F475W, F814W, F110W, F160W, z, vel, err, zqual, aband, time, mask, age, HI, CO, Ha')
@@ -48,10 +49,36 @@ CO = CO[good_qual]
 Ha = Ha[good_qual]
 
 #separate into age bins ======================================================================================================
-MS = age == 'MS'
-AGB = age == 'AGB'
-RGB = (age == 'RGB') | ('R' in mask == True)
-HeB = (age == 'RHeB') | (age == 'BHeB') | (age == 'HeB') #want to separate this out or lump into diff groups?
+MS = (age == 'MS') & (vel < 500)
+AGB = (age == 'AGB') & (vel < 500) 
+RGB = ((age == 'RGB') | ((age == 'CFHT') & ('R' in mask == True))) & (vel < 500)
+HeB_all = ((age == 'RHeB') | (age == 'BHeB') | (age == 'HeB')) & (vel < 500) #want to separate this out or lump into diff groups?
+HeB = (age == 'HeB') & (vel < 500)
+RHeB = (age == 'RHeB') & (vel < 500)
+BHeB = (age == 'BHeB') & (vel < 500)
+
+#histograms of LOS v =========================================================================================================
+# plt.hist(vel[MS], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[MS])), round(np.std(vel[MS]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='teal')
+# plt.legend()
+# plt.savefig('/Volumes/Titan/M33/Plots/MS_vel_hist.png')
+# plt.close()
+
+# plt.hist(vel[AGB], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[AGB])), round(np.std(vel[AGB]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='green')
+# plt.legend()
+# plt.savefig('/Volumes/Titan/M33/Plots/AGB_vel_hist.png')
+# plt.close()
+
+# plt.hist(vel[RGB], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[RGB])), round(np.std(vel[RGB]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='red')
+# plt.legend()
+# plt.savefig('/Volumes/Titan/M33/Plots/RGB_vel_hist.png')
+# plt.close()
+
+# plt.hist(vel[HeB_all], bins=range(-300, 100, 15), label=r'$all\ \mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[HeB_all])), round(np.std(vel[HeB_all]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='black')
+# plt.hist(vel[RHeB], bins=range(-300, 100, 15), label=r'$RHeB, \mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[RHeB])), round(np.std(vel[RHeB]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='red')
+# plt.hist(vel[BHeB], bins=range(-300, 100, 15), label=r'$BHeB, \mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[BHeB])), round(np.std(vel[BHeB]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='blue')
+# plt.legend()
+# plt.savefig('/Volumes/Titan/M33/Plots/HeB_all_vel_hist.png')
+# plt.close()
 
 #smoothing ===================================================================================================================
 #function to calculate the weights
@@ -104,7 +131,7 @@ def smoothing(ids, zqual, ras, decs, errs, HI, CO, Ha, velocities, circleSize):
 		area = sep.arcsecond < circleSize #put stars into smoothing circle of this size
 		velocities_circ = velocities[area]
 		weight_circ = weight[area]
-		if len(velocities_circ) > 15: #only want circles with at least 15 stars
+		if len(velocities_circ) > num_neighbors: #only want circles with at least 15 stars
 			normed_weights = normed_weight(weight_circ)
 			smoothed_v.append(weighted_mean(velocities_circ, normed_weights)) #average the velocites
 			dispersion.append(weighted_rmse(normed_weights, velocities_circ, weighted_mean(velocities_circ, normed_weights)))
@@ -122,8 +149,8 @@ MS_smoothed_data = smoothing(ID[MS], zqual[MS], ra[MS], dec[MS], err[MS], HI[MS]
 print('done with MS smoothing')
 AGB_smoothed_data = smoothing(ID[AGB], zqual[AGB], ra[AGB], dec[AGB], err[AGB], HI[AGB], CO[AGB], Ha[AGB], vel[AGB], circle_radius)
 print('done with AG smoothing')
-HeB_smoothed_data = smoothing(ID[HeB], zqual[HeB], ra[HeB], dec[HeB], err[HeB], HI[HeB], CO[HeB], Ha[HeB], vel[HeB], circle_radius)
-print('done with HeB smoothing')
+HeB_all_smoothed_data = smoothing(ID[HeB_all], zqual[HeB_all], ra[HeB_all], dec[HeB_all], err[HeB_all], HI[HeB_all], CO[HeB_all], Ha[HeB_all], vel[HeB_all], circle_radius)
+print('done with HeB_all smoothing')
 RGB_smoothed_data = smoothing(ID[RGB], zqual[RGB], ra[RGB], dec[RGB], err[RGB], HI[RGB], CO[RGB], Ha[RGB], vel[RGB], circle_radius)
 print('done with RGB smoothing')
 
@@ -203,17 +230,23 @@ def position_map(ra, dec, ind_vel, ra_smoothed, dec_smoothed, vel_smoothed, disp
 	axes[1].annotate(r'$\overline{v}_{LOS}$', xy=(-1.7, 3), horizontalalignment='right', fontsize=12)
 	axes[2].annotate(r'$\sigma$', xy=(-1.7, 3), horizontalalignment='right', fontsize=12)
 	plt.subplots_adjust(wspace=0, hspace=0)
-	plt.savefig('/Users/amandaquirk/Desktop/M33_maps_{}.png'.format(age), bbox_inches='tight')
+	plt.savefig('/Volumes/Titan/M33/Plots/M33_maps_{}.png'.format(age), bbox_inches='tight')
+	plt.close()
 
 position_map(ra[MS], dec[MS], vel[MS], MS_smoothed_data[0], MS_smoothed_data[1], MS_smoothed_data[2], MS_smoothed_data[4], circle_radius, 14.12, 'MS')
 position_map(ra[AGB], dec[AGB], vel[AGB], AGB_smoothed_data[0], AGB_smoothed_data[1], AGB_smoothed_data[2], AGB_smoothed_data[4], circle_radius, 14.12, 'AGB')
-position_map(ra[HeB], dec[HeB], vel[HeB], HeB_smoothed_data[0], HeB_smoothed_data[1], HeB_smoothed_data[2], HeB_smoothed_data[4], circle_radius, 14.12, 'HeB')
+position_map(ra[HeB_all], dec[HeB_all], vel[HeB_all], HeB_all_smoothed_data[0], HeB_all_smoothed_data[1], HeB_all_smoothed_data[2], HeB_all_smoothed_data[4], circle_radius, 14.12, 'HeB_all')
 position_map(ra[RGB], dec[RGB], vel[RGB], RGB_smoothed_data[0], RGB_smoothed_data[1], RGB_smoothed_data[2], RGB_smoothed_data[4], circle_radius, 14.12, 'RGB')
 
 #save the data into catalogues  ==============================================================================================
 #I am being lazy and saving as separate files. might be easier in the future to save as one file but who knows
-np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_smoothed_kinematics_MS.txt', np.c_[MS_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
-np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_smoothed_kinematics_AGB.txt', np.c_[AGB_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
-np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_smoothed_kinematics_HeB.txt', np.c_[HeB_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
-np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_smoothed_kinematics_RGB.txt', np.c_[RGB_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
+np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_MS.txt', np.c_[MS_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
+np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_AGB.txt', np.c_[AGB_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
+np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_HeB_all.txt', np.c_[HeB_all_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
+np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_RGB.txt', np.c_[RGB_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
 
+#save the not smoothed data too
+# np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_kinematics_MS.txt', np.c_[ra[MS], dec[MS], vel[MS], HI[MS], CO[MS], Ha[MS], ID[MS], zqual[MS]], fmt='%s', delimiter='\t', header='ra (ha), dec (deg), v (km/s), HI, CO, Ha, ID, zqual')
+# np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_kinematics_AGB.txt', np.c_[ra[AGB], dec[AGB], vel[AGB], HI[AGB], CO[AGB], Ha[AGB], ID[AGB], zqual[AGB]], fmt='%s', delimiter='\t', header='ra (ha), dec (deg), v (km/s), HI, CO, Ha, ID, zqual')
+# np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_kinematics_HeB_all.txt', np.c_[ra[HeB_all], dec[HeB_all], vel[HeB_all], HI[HeB_all], CO[HeB_all], Ha[HeB_all], ID[HeB_all], zqual[HeB_all]], fmt='%s', delimiter='\t', header='ra (ha), dec (deg), v (km/s), HI, CO, Ha, ID, zqual')
+# np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_kinematics_RGB.txt', np.c_[ra[RGB], dec[RGB], vel[RGB], HI[RGB], CO[RGB], Ha[RGB], ID[RGB], zqual[RGB]], fmt='%s', delimiter='\t', header='ra (ha), dec (deg), v (km/s), HI, CO, Ha, ID, zqual')

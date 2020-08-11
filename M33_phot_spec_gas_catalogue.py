@@ -27,7 +27,7 @@ def import_data(maskname): #import spectroscopy data from zspec files
 	return z, error, zqual, aband, ID, time, ra, dec, mask 
 
 #the 2018 and 2019 masks
-masks_2018 = ['A1M33P', 'B1M33P', 'C1M33P', 'D1M33P', 'E1M33P'] #,'A2M33P', 'B2M33P', 'C2M33P', 'D2M33P', 'E2M33P', 'K1M33P'] #photometry from M33/Data/all_target_list.in; not all of these masks have been zspeced yet so some are commented out
+masks_2018 = ['A1M33P', 'B1M33P', 'C1M33P', 'D1M33P', 'E1M33P','A2M33P', 'B2M33P', 'E2M33P', 'K1M33P', 'C2M33P', 'D2M33P'] #photometry from M33/Data/all_target_list.in; not all of these masks have been zspeced yet so some are commented out
 masks_2019 = ['D1M33R', 'D2M33R', 'E1M33R', 'E2M33R'] #E1M33R photometry from target_list_RGB_2019.in and rest photometry from M33/Masks/2019b/Dec/final/target_list_RGB_2019_expanded.in
 masks_2018_2019 = masks_2018 + masks_2019
 

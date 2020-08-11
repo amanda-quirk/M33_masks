@@ -47,23 +47,26 @@ def deprojection_geo(ra, dec):
 	dist = ang_dist * 14.12 #kpc
 	
 	#calculate PA and theta ========================================================
-	PA = np.arctan2(beta, alpha)
+	PA = np.arctan2(beta, alpha) 
 	theta = np.arctan2(beta, alpha * np.cos(np.deg2rad(M33_i)))	
 
 	return xi, eta, alpha, beta, dist, PA, theta, assigned_PA, assigned_i #kpc, kpc, deg, deg, kpc, rad, rad, deg, deg
 
-
 def vrot_0(vel, ra, dec):
 	vsys = -180 #km/s
 	pos_data = deprojection_geo(ra, dec)
-	vrot = abs((vel - vsys) / (np.cos(pos_data[6]) * np.sin(np.deg2rad(54)))) #use 54 or the TR inc?
+	vrot = abs((vel - vsys) / (np.cos(pos_data[6]) * np.sin(np.deg2rad(pos_data[-1])))) #use 54 or the TR inc?
 	return vrot
 
 def vrot_tr(vel, ra, dec):
+	'''
+	Things to figure out: 
+		-for tan(PA) term: should it be tan(PA_star - PA_TR)? That would be np.tan(pos_data[5] - np.deg2rad(pos_data[-2])). It gives different vrot values than vrot_0, so I am guessing not to do that and that it worked with a different definition of PA?
+	'''
 	vsys = -180 #km/s
 	pos_data = deprojection_geo(ra, dec)
-	first_term = abs(vel - vsys) / np.sin(np.deg2rad(54)) #use 54 or the TR inc?
-	sqrt_term = np.sqrt(1 + (np.tan(pos_data[5])**2 / np.cos(np.deg2rad(54))**2)) #use 54 or the TR inc?
+	first_term = abs(vel - vsys) / np.sin(np.deg2rad(pos_data[-1])) 
+	sqrt_term = np.sqrt(1 + (np.tan(pos_data[5])**2 / np.cos(np.deg2rad(pos_data[-1]))**2)) 
 	vrot = first_term * sqrt_term
 	return vrot 
 

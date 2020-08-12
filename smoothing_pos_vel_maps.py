@@ -35,7 +35,7 @@ mask = data['mask']
 mask = [a.decode("utf-8") for a in mask]
 
 #only look at things that have high enough zqual =============================================================================
-good_qual = (zqual == 1) | (zqual > 2)
+good_qual = (zqual == 1) | (zqual > 2) #add extra quality cuts here and delete the velocity cut below
 
 ID = ID[good_qual]
 ra = ra[good_qual]
@@ -56,6 +56,8 @@ HeB_all = ((age == 'RHeB') | (age == 'BHeB') | (age == 'HeB')) & (vel < 500) #wa
 HeB = (age == 'HeB') & (vel < 500)
 RHeB = (age == 'RHeB') & (vel < 500)
 BHeB = (age == 'BHeB') & (vel < 500)
+
+#sort the 2016 data and some of the CFHT data (from all years) into older age bins
 
 #histograms of LOS v =========================================================================================================
 # plt.hist(vel[MS], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[MS])), round(np.std(vel[MS]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='teal')

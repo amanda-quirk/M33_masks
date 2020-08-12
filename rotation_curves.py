@@ -75,17 +75,21 @@ def single_plot():
 	plt.tick_params(labelsize=12) 
 	plt.minorticks_on()
 
-def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs): #will return a file of vrots and AD values, 1 RC, and 1 AD hist 
+def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs, galaxy): #will return a file of vrots and AD values, 1 RC, and 1 AD hist 
 	#use the titled ring function to get dist, vrots
-	xi, eta, alpha, beta, dist, PA, theta, assigned_PA, assigned_i = deprojection_geo(ra, dec)
-	vrot0_star = vrot_0(vstar, ra, dec)
-	vrot_star = vrot_tr(vstar, ra, dec)
-	#vrot0_HI = vrot_0(vHI, ra, dec)
-	vrot_HI = vrot_tr(vHI, ra, dec)
-	#vrot0_Ha = vrot_0(vHa, ra, dec)
-	vrot_Ha = vrot_tr(vHa, ra, dec)
-	#vrot0_CO = vrot_0(vCO, ra, dec)
-	vrot_CO = vrot_tr(vCO, ra, dec)
+	xi, eta, alpha, beta, dist, PA, theta, assigned_PA, assigned_i = deprojection_geo(ra, dec, galaxy)
+
+	#theta/PA check -- should be 0
+	#print(np.median(np.tan(PA) - np.tan(theta) * np.cos(np.deg2rad(assigned_i)))) 
+
+	vrot0_star = vrot_0(vstar, ra, dec, galaxy)
+	vrot_star = vrot_tr(vstar, ra, dec, galaxy)
+	#vrot0_HI = vrot_0(vHI, ra, dec, galaxy)
+	vrot_HI = vrot_tr(vHI, ra, dec, galaxy)
+	#vrot0_Ha = vrot_0(vHa, ra, dec, galaxy)
+	vrot_Ha = vrot_tr(vHa, ra, dec, galaxy)
+	#vrot0_CO = vrot_0(vCO, ra, dec, galaxy)
+	vrot_CO = vrot_tr(vCO, ra, dec, galaxy)
 
 	#calculate AD
 	AD_HI = vrot_HI - vrot_star
@@ -98,10 +102,10 @@ def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs): #will return a file of vro
 	#rotation curve
 	single_plot()
 	plt.scatter(dist, vrot_star, c='r', label='{}'.format(age))
-	plt.scatter(dist, vrot0_star, c='b') #comp for sanity check of the rotation velocities
-	# plt.scatter(dist, vrot_HI, c='darkgrey', label='HI')
-	# plt.scatter(dist, vrot_CO, c='teal', label='CO')
-	# plt.scatter(dist, vrot_Ha, c='b', label='Ha')
+	#plt.scatter(dist, vrot0_star, c='b') #comp for sanity check of the rotation velocities
+	plt.scatter(dist, vrot_HI, c='darkgrey', label='HI')
+	plt.scatter(dist, vrot_CO, c='teal', label='CO')
+	plt.scatter(dist, vrot_Ha, c='b', label='Ha')
 	plt.xlabel('Deprojected R [kpc]')
 	plt.ylabel('V rot titled ring [kpc]')
 	plt.ylim(0, 300)
@@ -124,8 +128,8 @@ def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs): #will return a file of vro
 	plt.close()
 
 # outputs(MS_vel, MS_HI, MS_CO, MS_Ha, MS_ra, MS_dec, 'MS', MS_ID)
-outputs(HeB_vel, HeB_HI, HeB_CO, HeB_Ha, HeB_ra, HeB_dec, 'HeB', HeB_ID)
-outputs(AGB_vel, AGB_HI, AGB_CO, AGB_Ha, AGB_ra, AGB_dec, 'AGB', AGB_ID)
-outputs(RGB_vel, RGB_HI, RGB_CO, RGB_Ha, RGB_ra, RGB_dec, 'RGB', RGB_ID)
+outputs(HeB_vel, HeB_HI, HeB_CO, HeB_Ha, HeB_ra, HeB_dec, 'HeB', HeB_ID, 'M33')
+outputs(AGB_vel, AGB_HI, AGB_CO, AGB_Ha, AGB_ra, AGB_dec, 'AGB', AGB_ID, 'M33')
+outputs(RGB_vel, RGB_HI, RGB_CO, RGB_Ha, RGB_ra, RGB_dec, 'RGB', RGB_ID, 'M33')
 
 

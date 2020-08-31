@@ -1,6 +1,20 @@
 import numpy as np 
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, EarthLocation
+from astropy import constants as const
 from astropy import units as u
+from astropy.time import Time
+
+def correct_vel(ra, dec, time, redshift, aband):
+	# from astropy.utils.iers import conf
+	# conf.auto_max_age = None #astropy told me to do this 
+	sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
+	keck = EarthLocation.from_geodetic(lat=19.8283*u.deg, lon=-155.4783*u.deg, height=4160*u.m)
+	heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time(time, format='mjd'), location=keck) 
+	heliocorr_km_s = heliocorr.to(u.km/u.s) 
+	vraw = redshift * const.c.to(u.km/u.s)
+	vcorr_aband = vraw + heliocorr_km_s - aband * const.c.to(u.km/u.s)
+	vcorr = vraw + heliocorr_km_s
+	return vcorr.value, vcorr_aband.value #km/s
 
 def deprojection_geo(ra, dec, galaxy):
 	#get all the galaxy info
@@ -36,7 +50,7 @@ def deprojection_geo(ra, dec, galaxy):
 	cosine0 = np.cos(galaxy_pa * np.pi / 180) #cosine of galaxy's PA
 	beta0 = xi * cosine0 - eta * sine0 #deg, y major axis beta
 	alpha0 = eta * cosine0 + xi * sine0 #deg, x minor axis alpha
-	inclination_factor0 = np.cos(galaxy_inc * np.pi / 180)**2 #inclination of galaxy to deproject
+	inclination_factor0 = np.cos(galaxy_inc * np.pi / 180) #inclination of galaxy to deproject
 	ang_dist0 = np.sqrt(alpha0**2 +  (beta0 / inclination_factor0)**2)
 	dist0 = ang_dist0 * deg_2_kpc
 	
@@ -65,7 +79,7 @@ def deprojection_geo(ra, dec, galaxy):
 	cosine = np.cos(assigned_PA * np.pi / 180) #cosine of TR PA
 	beta = xi * cosine - eta * sine #deg, y major axis beta
 	alpha = eta * cosine + xi * sine #deg, x minor axis alpha
-	inclination_factor = np.cos(assigned_i * np.pi / 180)**2 #inclination of galaxy to deproject
+	inclination_factor = np.cos(assigned_i * np.pi / 180) #inclination of galaxy to deproject
 	ang_dist = np.sqrt(alpha**2 +  (beta / inclination_factor)**2)
 	dist = ang_dist * deg_2_kpc #kpc
 	

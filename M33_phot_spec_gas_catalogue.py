@@ -1,15 +1,15 @@
 '''
 Combines the photometry and spectroscopy for 2018b and 2019b M33 data. Also adds in all of the gas data from Laurent. Deals with duplicates. Corrects all velocities to heliocentric; does nothing with serendips
 
-output: catalogue with IDs, RA, Dec, Z, V_corr, V_err, Aband, MJD, Zqual, F275W, F336W, F475W, F814W, F110W, F160W, age tag, paired HI, paired CO, paired Halpha   
+output: catalogue with IDs, RA, Dec, Z, V_corr w/o aband, w/ aband, V_err, Aband, MJD, Zqual, F275W, F336W, F475W, F814W, F110W, F160W, age tag, paired HI, paired CO, paired Halpha   
 '''
 
 from astropy.io import fits
 import numpy as np 
-from astropy.time import Time
-from astropy.coordinates import SkyCoord, EarthLocation
+from astropy.coordinates import SkyCoord
 from astropy import constants as const
 from astropy import units as u
+from deprojecting_rotation_funcs import correct_vel
 
 #import zspec data ==================================================================================================================================
 def import_data(maskname): #import spectroscopy data from zspec files
@@ -103,129 +103,137 @@ dup_ras = all_ras[first_dup]
 dup_decs = all_decs[first_dup]
 dup_IDs = all_ids[first_dup]
 
-# #duplicates -- if the z qualities are similar, we want to take the weighted average of the corrected velocities; if they aren't similar, we take the data from the high zquality 
-# #first, correct the velocities
-# def correct_vel(ra, dec, time, redshift, aband):
-# 	# from astropy.utils.iers import conf
-# 	# conf.auto_max_age = None #astropy told me to do this 
-# 	sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
-# 	keck = EarthLocation.from_geodetic(lat=19.8283*u.deg, lon=-155.4783*u.deg, height=4160*u.m)
-# 	heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time(time, format='mjd'), location=keck) 
-# 	heliocorr_km_s = heliocorr.to(u.km/u.s) 
-# 	vraw = redshift * const.c.to(u.km/u.s)
-# 	vcorr = vraw + heliocorr_km_s - aband * const.c.to(u.km/u.s)
+#duplicates -- if the z qualities are similar, we want to take the weighted average of the corrected velocities; if they aren't similar, we take the data from the high zquality 
+#first, correct the velocities
+#real quick do the easy case
+unique_vels = correct_vel(unique_ras, unique_decs, unique_times, unique_zs, unique_abands)[0]
+unique_vels_aband = correct_vel(unique_ras, unique_decs, unique_times, unique_zs, unique_abands)[1]
+print('Done correcting unique velocities')
 
-# 	return vcorr.value #km/s
+#now with the duplicates -- going to go through them individually 
+def calc_weights(err):
+        return 1 / (err**2)
 
-# #real quick do the easy case
-# unique_vels = correct_vel(unique_ras, unique_decs, unique_times, unique_zs, unique_abands)
-# print('Done correcting unique velocities')
+def normed_weight(w):
+        sum_weights=sum(w)
+        return w / sum_weights
 
-# #now with the duplicates -- going to go through them individually 
-# def calc_weights(err):
-#         return 1 / (err**2)
+#function does the weighted meean
+def weighted_mean(data,norm_w):
+	return sum(data * norm_w)
 
-# def normed_weight(w):
-#         sum_weights=sum(w)
-#         return w / sum_weights
+def weighted_mean_error(err):
+	addition = sum(calc_weights(err))
+	return np.sqrt(1 / addition)
 
-# #function does the weighted meean
-# def weighted_mean(data,norm_w):
-# 	return sum(data * norm_w)
+dup_z = []
+dup_err = []
+dup_zqual = []
+dup_aband = []
+dup_time = []
+dup_vel = []
+dup_vel_aband = []
+dup_mask = [] #if I take the weighted average of velocities, I just combine the mask names together
+count_zquals_close = 0
+count_zquals_not_close_2 = 0
+count_zquals_not_close_3_1 = 0
+count_zquals_not_close_3_2 = 0
+for i in range(len(dup_ind)):
+	#evaluate zqualities first
+	zquals = all_zquals[dup_ind[i]]
+	std = np.std(zquals)
+	maskname = ''
+	if std < 0.7: #zquals are close enough that we will take the weighted avg of the velocities
+		vels = []
+		vels_aband = []
+		for ind in dup_ind[i]: #go through each entry of a duplicate
+			vels.append(correct_vel(all_ras[ind], all_decs[ind], all_times[ind], all_zs[ind], all_abands[ind])[0])
+			vels_aband.append(correct_vel(all_ras[ind], all_decs[ind], all_times[ind], all_zs[ind], all_abands[ind])[1])
+			maskname += all_masks[ind] 
+		weights = calc_weights(all_errs[dup_ind[i]])
+		weights_norm = normed_weight(weights)
+		dup_vel.append(weighted_mean(vels, weights_norm))
+		dup_vel_aband.append(weighted_mean(vels_aband, weights_norm))
+		dup_zqual.append(max(zquals))
+		dup_time.append('weight_avg_dup')
+		dup_aband.append(weighted_mean(all_abands[dup_ind[i]], weights_norm)) #changed this and the next line from weight_avg_dup
+		dup_z.append(weighted_mean(all_zs[dup_ind[i]], weights_norm))
+		dup_err.append(weighted_mean_error(all_errs[dup_ind[i]]))
+		dup_mask.append(maskname)
+		count_zquals_close += 1
+	else: #taking the data from the max zquality entry since duplicate entries are of much worse quality
+		if len(zquals) == 2:
+			where_best = np.argmax(zquals) 
+			best_ind = dup_ind[i][where_best]
+			dup_z.append(all_zs[best_ind])
+			dup_err.append(all_errs[best_ind])
+			dup_zqual.append(all_zquals[best_ind])
+			dup_aband.append(all_abands[best_ind])
+			dup_time.append(all_times[best_ind])
+			dup_mask.append(all_masks[best_ind])
+			dup_vel.append(correct_vel(all_ras[best_ind], all_decs[best_ind], all_times[best_ind], all_zs[best_ind], all_abands[best_ind])[0])
+			dup_vel_aband.append(correct_vel(all_ras[best_ind], all_decs[best_ind], all_times[best_ind], all_zs[best_ind], all_abands[best_ind])[1])
+			count_zquals_not_close_2 += 1
+		else: #there are 3 or more observations of the same star, take data from the highest zqual
+			best = np.max(zquals)
+			where_best = np.argmax(zquals)
+			N = np.where(zquals == best)
+			if len(N[0]) == 1: #only one best zqual, just take that data
+				best_ind = dup_ind[i][where_best]
+				dup_z.append(all_zs[best_ind])
+				dup_err.append(all_errs[best_ind])
+				dup_zqual.append(all_zquals[best_ind])
+				dup_aband.append(all_abands[best_ind])
+				dup_time.append(all_times[best_ind])
+				dup_mask.append(all_masks[best_ind])
+				dup_vel.append(correct_vel(all_ras[best_ind], all_decs[best_ind], all_times[best_ind], all_zs[best_ind], all_abands[best_ind])[0])
+				dup_vel_aband.append(correct_vel(all_ras[best_ind], all_decs[best_ind], all_times[best_ind], all_zs[best_ind], all_abands[best_ind])[1])
+				count_zquals_not_close_3_1 += 1
+			else: #there are multiple highest zqual entries so thake their weighted avg
+				vels = []
+				vels_aband = []
+				real_inds = []
+				maskname = ''
+				for ind in N[0]:
+					real_ind = dup_ind[i][ind]
+					real_inds.append(dup_ind[i][ind])
+					vels.append(correct_vel(all_ras[real_ind], all_decs[real_ind], all_times[real_ind], all_zs[real_ind], all_abands[real_ind])[0])
+					vels_aband.append(correct_vel(all_ras[real_ind], all_decs[real_ind], all_times[real_ind], all_zs[real_ind], all_abands[real_ind])[1])
+					maskname += all_masks[real_ind]
+				weights = calc_weights(all_errs[real_inds])
+				weights_norm = normed_weight(weights)
+				dup_vel.append(weighted_mean(vels, weights_norm))
+				dup_vel_aband.append(weighted_mean(vels_aband, weights_norm))
+				dup_zqual.append(max(zquals))
+				dup_time.append('weight_avg_dup')
+				dup_aband.append(weighted_mean(all_abands[real_inds], weights_norm)) #changed this and the next line from 'weight_avg_dup'
+				dup_z.append(weighted_mean(all_zs[real_inds], weights_norm))
+				dup_err.append(weighted_mean_error(all_errs[real_inds]))
+				dup_mask.append(maskname)
+				count_zquals_not_close_3_2 += 1
+print('Done with dup velocities', count_zquals_close, count_zquals_not_close_2, count_zquals_not_close_3_1, count_zquals_not_close_3_2)
 
-# def weighted_mean_error(err):
-# 	addition = sum(calc_weights(err))
-# 	return np.sqrt(1 / addition)
-
-# dup_z = []
-# dup_err = []
-# dup_zqual = []
-# dup_aband = []
-# dup_time = []
-# dup_vel = []
-# dup_mask = [] #if I take the weighted average of velocities, I just combine the mask names together
-# count_zquals_close = 0
-# count_zquals_not_close_2 = 0
-# count_zquals_not_close_3_1 = 0
-# count_zquals_not_close_3_2 = 0
-# for i in range(len(dup_ind)):
-# 	#evaluate zqualities first
-# 	zquals = all_zquals[dup_ind[i]]
-# 	std = np.std(zquals)
-# 	maskname = ''
-# 	if std < 0.7: #zquals are close enough that we will take the weighted avg of the velocities
-# 		vels = []
-# 		for ind in dup_ind[i]: #go through each entry of a duplicate
-# 			vels.append(correct_vel(all_ras[ind], all_decs[ind], all_times[ind], all_zs[ind], all_abands[ind]))
-# 			maskname += all_masks[ind] 
-# 		weights = calc_weights(all_errs[dup_ind[i]])
-# 		weights_norm = normed_weight(weights)
-# 		dup_vel.append(weighted_mean(vels, weights_norm))
-# 		dup_zqual.append(max(zquals))
-# 		dup_time.append('weight_avg_dup')
-# 		dup_aband.append('weight_avg_dup')
-# 		dup_z.append('weight_avg_dup')
-# 		dup_err.append(weighted_mean_error(all_errs[dup_ind[i]]))
-# 		dup_mask.append(maskname)
-# 		count_zquals_close += 1
-# 	else: #taking the data from the max zquality entry since duplicate entries are of much worse quality
-# 		if len(zquals) == 2:
-# 			where_best = np.argmax(zquals) 
-# 			best_ind = dup_ind[i][where_best]
-# 			dup_z.append(all_zs[best_ind])
-# 			dup_err.append(all_errs[best_ind])
-# 			dup_zqual.append(all_zquals[best_ind])
-# 			dup_aband.append(all_abands[best_ind])
-# 			dup_time.append(all_times[best_ind])
-# 			dup_mask.append(all_masks[best_ind])
-# 			dup_vel.append(correct_vel(all_ras[best_ind], all_decs[best_ind], all_times[best_ind], all_zs[best_ind], all_abands[best_ind]))
-# 			count_zquals_not_close_2 += 1
-# 		else: #there are 3 or more observations of the same star, take data from the highest zqual
-# 			best = np.max(zquals)
-# 			where_best = np.argmax(zquals)
-# 			N = np.where(zquals == best)
-# 			if len(N[0]) == 1: #only one best zqual, just take that data
-# 				best_ind = dup_ind[i][where_best]
-# 				dup_z.append(all_zs[best_ind])
-# 				dup_err.append(all_errs[best_ind])
-# 				dup_zqual.append(all_zquals[best_ind])
-# 				dup_aband.append(all_abands[best_ind])
-# 				dup_time.append(all_times[best_ind])
-# 				dup_mask.append(all_masks[best_ind])
-# 				dup_vel.append(correct_vel(all_ras[best_ind], all_decs[best_ind], all_times[best_ind], all_zs[best_ind], all_abands[best_ind]))
-# 				count_zquals_not_close_3_1 += 1
-# 			else: #there are multiple highest zqual entries so thake their weighted avg
-# 				vels = []
-# 				real_inds = []
-# 				maskname = ''
-# 				for ind in N[0]:
-# 					real_ind = dup_ind[i][ind]
-# 					real_inds.append(dup_ind[i][ind])
-# 					vels.append(correct_vel(all_ras[real_ind], all_decs[real_ind], all_times[real_ind], all_zs[real_ind], all_abands[real_ind]))
-# 					maskname += all_masks[real_ind]
-# 				weights = calc_weights(all_errs[real_inds])
-# 				weights_norm = normed_weight(weights)
-# 				dup_vel.append(weighted_mean(vels, weights_norm))
-# 				dup_zqual.append(max(zquals))
-# 				dup_time.append('weight_avg_dup')
-# 				dup_aband.append('weight_avg_dup')
-# 				dup_z.append('weight_avg_dup')
-# 				dup_err.append(weighted_mean_error(all_errs[real_inds]))
-# 				dup_mask.append(maskname)
-# 				count_zquals_not_close_3_2 += 1
-# print('Done with dup velocities', count_zquals_close, count_zquals_not_close_2, count_zquals_not_close_3_1, count_zquals_not_close_3_2)
-
-# #combing arrays for dups and nondups ======================================================================================================
-# sorted_ras = list(unique_ras) + list(dup_ras)
-# sorted_decs = list(unique_decs) + list(dup_decs)
-# sorted_zs = list(unique_zs) + list(dup_z)
-# sorted_errs = list(unique_errs) + list(dup_err)
-# sorted_zquals = list(unique_zquals) + list(dup_zqual)
-# sorted_abands = list(unique_abands) + list(dup_aband)
-# sorted_times = list(unique_times) + list(dup_time)
-# sorted_vels = list(unique_vels) + list(dup_vel)
+#combing arrays for dups and nondups ======================================================================================================
+sorted_ras = list(unique_ras) + list(dup_ras)
+sorted_decs = list(unique_decs) + list(dup_decs)
+sorted_zs = list(unique_zs) + list(dup_z)
+sorted_errs = list(unique_errs) + list(dup_err)
+sorted_zquals = list(unique_zquals) + list(dup_zqual)
+sorted_abands = list(unique_abands) + list(dup_aband)
+sorted_times = list(unique_times) + list(dup_time)
+sorted_vels = list(unique_vels) + list(dup_vel)
+sorted_vels_aband = list(unique_vels_aband) + list(dup_vel_aband)
 sorted_ids = list(unique_IDs) + list(dup_IDs)
-# sorted_masks = list(unique_masks) + list(dup_mask)
+sorted_masks = list(unique_masks) + list(dup_mask)
+
+#need to remove the 0 that is in front of some of the IDs
+fixed_ids = []
+for name in sorted_ids:
+	if name.startswith('0') == True:
+		fixed_ids.append(name[1:])
+	else:
+		fixed_ids.append(name)
+sorted_ids = fixed_ids
 
 #pulling in the photometry from the target lists ==========================================================================================
 def import_phot(path):
@@ -238,14 +246,14 @@ def import_phot(path):
 		mag3 = ref_data['MAG1_ACS'] #F475W
 		mag4 = ref_data['MAG2_ACS'] #F814W
 		return ref_ID, np.zeros(len(mag3)), np.zeros(len(mag3)), mag3, mag4, np.zeros(len(mag3)), np.zeros(len(mag3))
-	elif path.endswith('extcorr.fits'):
+	elif path.endswith('matchcat.fits'): #extcorr i/o matchcat
 		h = fits.open('/Volumes/Titan/M33/Data/{}'.format(path), memmap = True)
 		ref_data = h[1].data
 		ref_ID = ref_data['OBJNO1'] 
 		ref_ID = [int(a) for a in ref_ID] #converting from string to int to get rid of extra space
 		ref_ID = [str(a) for a in ref_ID] #converting it back -.- so that it matches sorted_ids
-		mag3 = ref_data['MAG1_AUTO_0'] #g
-		mag4 = ref_data['MAG2_AUTO_0'] #i 
+		mag3 = ref_data['MAG1_AUTO'] #g #_0 for the extcorr file
+		mag4 = ref_data['MAG2_AUTO'] #i #_0 for the extcorr file 
 		return ref_ID, np.zeros(len(mag3)), np.zeros(len(mag3)), mag3, mag4, np.zeros(len(mag3)), np.zeros(len(mag3))
 	else:
 		ref_data = np.genfromtxt('/Volumes/Titan/M33/Data/{}'.format(path), dtype=None, names='ID, ras, decs, frame, F814W, filter1, 	F475W, filter2, priority, list_assignment, selection_flag, F110W, F160W, F275W, F336W')
@@ -262,7 +270,7 @@ def import_phot(path):
 
 #bringing in the photometry from the 2018 and 2019 data
 print('Reading in photometry')
-paths = ['all_target_list.in', 'target_list_RGB_2019_6filt.in', 'target_list_RGB_2019_expanded_6filt.in', 'HST_all_list3.input.fits', 'M33.GI.matchcat.extcorr.fits', 'HST_15b_all_nolist3dups.input.fits', 'HST_16b_all_nolist3dups.input.fits'] #need to swap out the current M33 file for M33.GI.matchcat.fits once I get it from Karrie
+paths = ['all_target_list.in', 'target_list_RGB_2019_6filt.in', 'target_list_RGB_2019_expanded_6filt.in', 'HST_all_list3.input.fits', 'M33.GI.matchcat.fits', 'HST_15b_all_nolist3dups.input.fits', 'HST_16b_all_nolist3dups.input.fits'] #need to swap out the current M33 file for M33.GI.matchcat.fits once I get it from Karrie
 
 #the arrays below will contain many duplicates but there's no need to remove them
 ref_IDs = []
@@ -319,9 +327,10 @@ for i in range(len(sorted_ids)):
 		elif sorted_ids[i].startswith('KG'):
 			age_tag.append('Xray')
 		else: #2016 data is just numbers. Sources with 7 or 8 digit ID numbers are from the HST catalogs. Sources with < 7 digit ID 	numbers are from the CFHT catalog 
-			age_tag.append('0')
+			age_tag.append('unknown')
 	except ValueError:
 		unmatched_ID.append(sorted_ids[i])
+print('The number of unmatched stars is', len(unmatched_ID))
 print('Sorted by ages')
 
 #add in the gas ============================================================================================================================
@@ -360,27 +369,27 @@ for i in range(len(sorted_ids)):
 		sorted_Ha.append(np.nan)
 print('Number of stars missing gas data is', missing_gas_count, 'out of', len(sorted_ids)) #hopefully this becomes 0 once all the data is in
 
-# #correct the reference frame for HI and CO -- LSR to heliocentric; this is a rough estimate for now
-# def LSR_to_helio(v, ra, dec): #I am still sketpcial of this formula
-# 	v_corr = np.zeros(len(v))
-# 	sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
-# 	for i in range(len(v)):
-# 		if v[i] == np.nan:
-# 			v_corr[i] = v[i]
-# 		else:
-# 			#v_corr[i] = v[i] + 0.59 
-# 			l = sc[i].galactic.l.value
-# 			b = sc[i].galactic.b.value
-# 			v_corr[i] = v[i] - 9 * np.cos(l) * np.cos(b) - 12 * np.sin(l) * np.cos(b) - 7 * np.sin(b)
-# 	return v_corr #km/s
+#correct the reference frame for HI and CO -- LSR to heliocentric; this is a rough estimate for now
+def LSR_to_helio(v, ra, dec): #I am still sketpcial of this formula
+	v_corr = np.zeros(len(v))
+	sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
+	for i in range(len(v)):
+		if v[i] == np.nan:
+			v_corr[i] = v[i]
+		else:
+			#v_corr[i] = v[i] + 0.59 
+			l = sc[i].galactic.l.value
+			b = sc[i].galactic.b.value
+			v_corr[i] = v[i] - 9 * np.cos(l) * np.cos(b) - 12 * np.sin(l) * np.cos(b) - 7 * np.sin(b)
+	return v_corr #km/s
 
-# sorted_corrected_HI = LSR_to_helio(sorted_HI, sorted_ras, sorted_decs)
-# sorted_corrected_CO = LSR_to_helio(sorted_CO, sorted_ras, sorted_decs)
+sorted_corrected_HI = LSR_to_helio(sorted_HI, sorted_ras, sorted_decs)
+sorted_corrected_CO = LSR_to_helio(sorted_CO, sorted_ras, sorted_decs)
 
-# #saving the catalogue!! =====================================================================================================================
-# sorted_errs = [a.value for a in sorted_errs] #strip the unit
+#saving the catalogue!! =====================================================================================================================
+sorted_errs = [a.value for a in sorted_errs] #strip the unit
 
-# np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_phot_spec.txt', np.c_[sorted_ids, sorted_ras, sorted_decs, sorted_F275W, sorted_F336W, sorted_F475W, sorted_F814W, sorted_F110W, sorted_F160W, sorted_zs, sorted_vels, sorted_errs, sorted_zquals, sorted_abands, sorted_times, sorted_masks, age_tag, sorted_corrected_HI, sorted_corrected_CO, sorted_Ha], fmt='%s', delimiter='\t', header='ID, RA, Dec, F275W, F336W, F475W/g, F814W/i, F110W, F160W, redshift, corrected vel (km/s), velocity error (km/s), zquality, A band, MJD, mask name, age tag, HI (km/s), CO (km/s), Halpha (km/s)') 
+np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_phot_spec.txt', np.c_[sorted_ids, sorted_ras, sorted_decs, sorted_F275W, sorted_F336W, sorted_F475W, sorted_F814W, sorted_F110W, sorted_F160W, sorted_zs, sorted_vels, sorted_vels_aband, sorted_errs, sorted_zquals, sorted_abands, sorted_times, sorted_masks, age_tag, sorted_corrected_HI, sorted_corrected_CO, sorted_Ha], fmt='%s', delimiter='\t', header='ID, RA, Dec, F275W, F336W, F475W/g, F814W/i, F110W, F160W, redshift, heliocorrected vel (km/s), helio+aband corrected vel (km/s), velocity error (km/s), zquality, A band, MJD, mask name, age tag, HI (km/s), CO (km/s), Halpha (km/s)') 
 
 
 

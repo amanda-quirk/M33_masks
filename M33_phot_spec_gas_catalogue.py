@@ -57,6 +57,76 @@ for name in mask_list:
 	all_times = all_times + list(times)
 	all_masks = all_masks + list(masks)
 
+#shift the HST astrometry for the 2016b masks according to what Karrie did when making the masks -- this puts them on the CFHT reference frame
+corrected_ras = np.zeros_like(all_ras)
+corrected_decs = np.zeros_like(all_decs)
+for i in range(len(all_ids)):
+	if len(all_ids[i]) > 6: #not 2016 CFHT
+		if all_ids[i].startswith('5'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra - 0.043 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec + 0.37 * u.arcsecond
+		elif all_ids[i].startswith('6'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra + 0.0255 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec - 0.18 * u.arcsecond
+		elif all_ids[i].startswith('7'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra - 0.0285 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec - 0.235 * u.arcsecond
+		elif all_ids[i].startswith('8'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra - -0.035 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec + 0.09 * u.arcsecond
+		elif all_ids[i].startswith('9'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra + 0.1 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec - 0.28 * u.arcsecond
+		elif all_ids[i].startswith('10'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra + 0.036 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec - 0.27 * u.arcsecond
+		elif all_ids[i].startswith('11'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra - 0.029 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec + 0.09 * u.arcsecond
+		elif all_ids[i].startswith('12'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra + 0.022 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec - 0.37 * u.arcsecond
+		elif all_ids[i].startswith('13'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra - 0.043 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec - 0.28 * u.arcsecond
+		elif all_ids[i].startswith('14'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra - 0.0285 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec + 0.00 * u.arcsecond
+		elif all_ids[i].startswith('15'):
+			coord = SkyCoord(all_ras[i], all_decs[i], unit=(u.hourangle,u.deg))
+			ra_shift = coord.ra - 0.05 * u.arcsecond
+			corrected_ras[i] = ra_shift.hourangle
+			corrected_decs[i] = coord.dec - 0.185 * u.arcsecond
+		else: #2018 or 2019 data, needs no offset
+			corrected_ras[i] = all_ras[i]
+			corrected_decs[i] = all_decs[i]
+	else: #2016 CFHT data, needs no offset
+		corrected_ras[i] = all_ras[i]
+		corrected_decs[i] = all_decs[i]
+
+all_ras = corrected_ras #there will be different formats in here but all are the same unit so ok
+all_decs = corrected_decs #there will be different formats in here but all are the same unit so ok
+
 #deal with duplicate stars ==========================================================================================================================
 #first, let's remove all serendips
 not_serendip = (np.array(all_ids) != 'serendip1') & (np.array(all_ids) != 'serendip2')

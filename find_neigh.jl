@@ -4,7 +4,7 @@ using HDF5
 
 rad2arcsec(r) = 3600 * rad2deg(r)
 
-fileName = "/Users/amandaquirk/Documents/M33/Data/CFHT_data_for_isolation.hdf5"
+fileName = "/Volumes/Titan/M33/Data/PAndAS_.8deg_isolation_test.hd5f"
 dataFile = h5open(fileName, "r")
 ra_all = read(dataFile, "RAs")
 dec_all = read(dataFile, "Decs")
@@ -118,7 +118,7 @@ find_distances()
 
 #writedlm( "/Users/amandaquirk/Documents/M33/Data/isolation_tag_GAIA_region1.txt", rejected)
 
-fileName = "/Users/amandaquirk/Documents/M33/Data/CFHT_strict_isolated.hdf5"
+fileName = "/Users/amandaquirk/Desktop/PAndAS_isolation_tag.hdf5"
 dataFile = h5open(fileName, "w")
 dataFile["isolation_tag"] = rejected
 close(dataFile)

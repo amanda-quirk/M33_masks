@@ -181,6 +181,7 @@ def smoothing(ids, zqual, ras, decs, errs, HI, CO, Ha, velocities, circleSize):
 			zqual_goodcenter.append(zqual[i])
 	return ra_goodcenter, dec_goodcenter, smoothed_v, smoothed_err, dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter
 
+#I am currently excluding the aband correction -- change to vel_aband if want to include it
 # MS_smoothed_data = smoothing(ID[MS], zqual[MS], ra[MS], dec[MS], err[MS], HI[MS], CO[MS], Ha[MS], vel[MS], circle_radius)
 # print('done with MS smoothing')
 # AGB_smoothed_data = smoothing(ID[AGB], zqual[AGB], ra[AGB], dec[AGB], err[AGB], HI[AGB], CO[AGB], Ha[AGB], vel[AGB], circle_radius)
@@ -279,15 +280,17 @@ def position_map(ra, dec, ind_vel, ra_smoothed, dec_smoothed, vel_smoothed, disp
 # position_map(ra[HeB_all], dec[HeB_all], vel[HeB_all], HeB_all_smoothed_data[0], HeB_all_smoothed_data[1], HeB_all_smoothed_data[2], HeB_all_smoothed_data[4], circle_radius, 14.12, 'HeB_all')
 # position_map(ra[RGB], dec[RGB], vel[RGB], RGB_smoothed_data[0], RGB_smoothed_data[1], RGB_smoothed_data[2], RGB_smoothed_data[4], circle_radius, 14.12, 'RGB')
 
-position_map(ra[young], dec[young], vel[young], young_smoothed_data[0], young_smoothed_data[1], young_smoothed_data[2], young_smoothed_data[4], circle_radius, 14.12, 'Younger Populations')
-position_map(ra[old], dec[old], vel[old], old_smoothed_data[0], old_smoothed_data[1], old_smoothed_data[2], old_smoothed_data[4], circle_radius, 14.12, 'Older Populations')
+# position_map(ra[young], dec[young], vel[young], young_smoothed_data[0], young_smoothed_data[1], young_smoothed_data[2], young_smoothed_data[4], circle_radius, 14.12, 'Younger Populations')
+# position_map(ra[old], dec[old], vel[old], old_smoothed_data[0], old_smoothed_data[1], old_smoothed_data[2], old_smoothed_data[4], circle_radius, 14.12, 'Older Populations')
 
 # #save the data into catalogues  ==============================================================================================
-# #I am being lazy and saving as separate files. might be easier in the future to save as one file but who knows
+#I am being lazy and saving as separate files. might be easier in the future to save as one file but who knows
 # np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_MS.txt', np.c_[MS_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
 # np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_AGB.txt', np.c_[AGB_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
 # np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_HeB_all.txt', np.c_[HeB_all_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
 # np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_RGB.txt', np.c_[RGB_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
+# np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_young.txt', np.c_[young_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
+# np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_old.txt', np.c_[old_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter')
 
 #save the not smoothed data too
 # np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_kinematics_MS.txt', np.c_[ra[MS], dec[MS], vel[MS], HI[MS], CO[MS], Ha[MS], ID[MS], zqual[MS]], fmt='%s', delimiter='\t', header='ra (ha), dec (deg), v (km/s), HI, CO, Ha, ID, zqual')

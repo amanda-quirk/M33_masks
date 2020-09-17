@@ -313,7 +313,7 @@ def import_phot(path):
 		ref_ID = ref_data['OBJNAME']
 		ref_ID = [int(a) for a in ref_ID] #converting from string to int to get rid of extra space
 		ref_ID = [str(a) for a in ref_ID] #converting it back -.- so that it matches sorted_ids
-		mag3 = ref_data['MAG1_ACS'] #F475W
+		mag3 = ref_data['MAG1_ACS'] #F475W OR F606W
 		mag4 = ref_data['MAG2_ACS'] #F814W
 		return ref_ID, np.zeros(len(mag3)), np.zeros(len(mag3)), mag3, mag4, np.zeros(len(mag3)), np.zeros(len(mag3))
 	elif path.endswith('matchcat.fits'): #extcorr i/o matchcat
@@ -459,7 +459,7 @@ sorted_corrected_CO = LSR_to_helio(sorted_CO, sorted_ras, sorted_decs)
 #saving the catalogue!! =====================================================================================================================
 sorted_errs = [a.value for a in sorted_errs] #strip the unit
 
-np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_phot_spec.txt', np.c_[sorted_ids, sorted_ras, sorted_decs, sorted_F275W, sorted_F336W, sorted_F475W, sorted_F814W, sorted_F110W, sorted_F160W, sorted_zs, sorted_vels, sorted_vels_aband, sorted_errs, sorted_zquals, sorted_abands, sorted_times, sorted_masks, age_tag, sorted_corrected_HI, sorted_corrected_CO, sorted_Ha], fmt='%s', delimiter='\t', header='ID, RA, Dec, F275W, F336W, F475W/g, F814W/i, F110W, F160W, redshift, heliocorrected vel (km/s), helio+aband corrected vel (km/s), velocity error (km/s), zquality, A band, MJD, mask name, age tag, HI (km/s), CO (km/s), Halpha (km/s)') 
+np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_phot_spec.txt', np.c_[sorted_ids, sorted_ras, sorted_decs, sorted_F275W, sorted_F336W, sorted_F475W, sorted_F814W, sorted_F110W, sorted_F160W, sorted_zs, sorted_vels, sorted_vels_aband, sorted_errs, sorted_zquals, sorted_abands, sorted_times, sorted_masks, age_tag, sorted_corrected_HI, sorted_corrected_CO, sorted_Ha], fmt='%s', delimiter='\t', header='ID, RA, Dec, F275W, F336W, F475W/g/F606W, F814W/i, F110W, F160W, redshift, heliocorrected vel (km/s), helio+aband corrected vel (km/s), velocity error (km/s), zquality, A band, MJD, mask name, age tag, HI (km/s), CO (km/s), Halpha (km/s)') 
 
 
 

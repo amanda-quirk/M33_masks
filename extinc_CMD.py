@@ -52,16 +52,60 @@ sdss_g = 3.303
 sdss_i = 1.698
 
 #apply the extinction corrections
-# mag1_cfht = Column(tbdata['G_AUTO_CFHT'] - extinct_map*sdss_g, name='G_AUTO_CFHT_0')
-# mag2_cfht = Column(tbdata['I_AUTO_CFHT'] - extinct_map*sdss_i, name='I_AUTO_CFHT_0') 
+num = [len(x) for x in ID] #length of the ID which will help indicate which catalogue it came from
+CFHT = (age == 'CFHT') | (np.array(num) < 6) #F475W ~ SDSS g and F814W ~ SDSS i 
 
-# mag1a_hst16b = Column(tbdata['F475W_ACS'] - extinct_map*acs_475, name='F475W_ACS_0')
-# mag1b_hst16b = Column(tbdata['F606W_ACS'] - extinct_map*acs_606, name='F606W_ACS_0')
-# mag2_hst16b = Column(tbdata['F814W_ACS'] - extinct_map*acs_814, name='F814W_ACS_0')
+mag1_ext = np.zeros(len(F475W))
+mag2_ext = np.zeros(len(F475W))
+mag1_name = np.zeros_like(ID)
+mag2_name = np.zeros_like(ID)
+for i in range(len(CFHT)):
+	if CFHT[i] == True:
+		mag1_ext[i] = F475W[i] - extinct_map[i] * sdss_g
+		mag2_ext[i] = F814W[i] - extinct_map[i] * sdss_i
+		mag1_name[i] = 'g'
+		mag2_name[i] = 'i'
+	elif ID[i].isnumeric() == True:
+		if ((int(ID[i]) < 8000000) | (int(ID[i]) >= 11000000)): #2016 HST and blue filter is F606W
+			mag1_ext[i] = F475W[i] - extinct_map[i] * acs_606
+			mag2_ext[i] = F814W[i] - extinct_map[i] * acs_814
+			mag1_name[i] = 'F606W'
+			mag2_name[i] = 'F814W'
+		else: #2016 HST and blue filter is F475W
+			mag1_ext[i] = F475W[i] - extinct_map[i] * acs_475
+			mag2_ext[i] = F814W[i] - extinct_map[i] * acs_814
+			mag1_name[i] = 'F475W'
+			mag2_name[i] = 'F814W'
+	else: #2018/19 HST and blue filter is F475W
+		mag1_ext[i] = F475W[i] - extinct_map[i] * acs_475
+		mag2_ext[i] = F814W[i] - extinct_map[i] * acs_814
+		mag1_name[i] = 'F475W'
+		mag2_name[i] = 'F814W'
 
-# # current photometry file doesn't have error
-# mag1_hst18b = Column(tbdata['F475W_VEGA'] - extinct_map*acs_475, name='F475W_VEGA_0')
-# mag2_hst18b = Column(tbdata['F814W_VEGA'] - extinct_map*acs_814, name='F814W_VEGA_0')
+#CMD sorting =================================================================================================================
+#currently using a combo of Anil's CMD and what we used in the RGB selection for the 2019 target lists
+color = mag1_ext - mag2_ext
+age_tag = np.zeros_like(age)
+
+for i in len(age):
+	if mag1_name[i] == 'F475W': #can sort all age bins
+		if color[i] < 1.19:
+			age_tag[i] = 'MS'
+	# elif mag1_name[i] == 'F606W': #can sort RGB only (for now?)
+	# 	if RGB selction:
+	# 		age_tag[i] = 'RGB'
+	# 	else:
+	# 		age_tag = 'unknown'
+	# elif mag1_name[i] == 'g': #can sort RGB only (for now?)
+	# 	if RGB selction:
+	# 		age_tag[i] = 'RGB'
+	# 	else:
+	# 		age_tag = 'unknown'
+
+
+#save data ===================================================================================================================
+# np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_phot_spec.txt', np.c_[ID, ra, dec, F275W, F336W, mag1_ext, mag1_name, mag2_ext, mag2_name, F110W, F160W, z, vel, vel_aband, err, zqual, aband, time, mask, age_tag, HI, CO, Ha], fmt='%s', delimiter='\t', header='ID, RA, Dec, F275W, F336W, mag1, mag1 name, mag2, mag2 name, F110W, F160W, redshift, heliocorrected vel (km/s), helio+aband corrected vel (km/s), velocity error (km/s), zquality, A band, MJD, mask name, age tag, HI (km/s), CO (km/s), Halpha (km/s)') 
+
 
 
 

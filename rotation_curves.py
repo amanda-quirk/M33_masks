@@ -10,9 +10,12 @@ takes the output of smoothing_pos_vel and returns rotation curves and AD hists
 #read in the smoothed data ====================================================================================================
 #data has header: ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter
 #MS_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_MS.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
-HeB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_HeB_all.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
-AGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_AGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
-RGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_RGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
+# HeB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_HeB_all.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
+# AGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_AGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
+# RGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_RGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
+
+young_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_young.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
+old_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_old.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
 
 #grab the parameters we care about here
 # MS_ra = MS_data['ra']
@@ -26,38 +29,60 @@ RGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_RGB.txt', dtype=
 # MS_ID = MS_data['ID']
 # MS_ID = np.array([a.decode("utf-8") for a in MS_ID])
 
-HeB_ra = HeB_data['ra']
-HeB_ra = np.array([a.decode("utf-8") for a in HeB_ra])
-HeB_dec = HeB_data['dec']
-HeB_dec = np.array([a.decode("utf-8") for a in HeB_dec])
-HeB_vel = HeB_data['vel']
-HeB_HI = HeB_data['HI']
-HeB_CO = HeB_data['CO']
-HeB_Ha = HeB_data['Ha']
-HeB_ID = HeB_data['ID']
-HeB_ID = np.array([a.decode("utf-8") for a in HeB_ID])
+# HeB_ra = HeB_data['ra']
+# HeB_ra = np.array([a.decode("utf-8") for a in HeB_ra])
+# HeB_dec = HeB_data['dec']
+# HeB_dec = np.array([a.decode("utf-8") for a in HeB_dec])
+# HeB_vel = HeB_data['vel']
+# HeB_HI = HeB_data['HI']
+# HeB_CO = HeB_data['CO']
+# HeB_Ha = HeB_data['Ha']
+# HeB_ID = HeB_data['ID']
+# HeB_ID = np.array([a.decode("utf-8") for a in HeB_ID])
 
-AGB_ra = AGB_data['ra']
-AGB_ra = np.array([a.decode("utf-8") for a in AGB_ra])
-AGB_dec = AGB_data['dec']
-AGB_dec = np.array([a.decode("utf-8") for a in AGB_dec])
-AGB_vel = AGB_data['vel']
-AGB_HI = AGB_data['HI']
-AGB_CO = AGB_data['CO']
-AGB_Ha = AGB_data['Ha']
-AGB_ID = AGB_data['ID']
-AGB_ID = np.array([a.decode("utf-8") for a in AGB_ID])
+# AGB_ra = AGB_data['ra']
+# AGB_ra = np.array([a.decode("utf-8") for a in AGB_ra])
+# AGB_dec = AGB_data['dec']
+# AGB_dec = np.array([a.decode("utf-8") for a in AGB_dec])
+# AGB_vel = AGB_data['vel']
+# AGB_HI = AGB_data['HI']
+# AGB_CO = AGB_data['CO']
+# AGB_Ha = AGB_data['Ha']
+# AGB_ID = AGB_data['ID']
+# AGB_ID = np.array([a.decode("utf-8") for a in AGB_ID])
 
-RGB_ra = RGB_data['ra']
-RGB_ra = np.array([a.decode("utf-8") for a in RGB_ra])
-RGB_dec = RGB_data['dec']
-RGB_dec = np.array([a.decode("utf-8") for a in RGB_dec])
-RGB_vel = RGB_data['vel']
-RGB_HI = RGB_data['HI']
-RGB_CO = RGB_data['CO']
-RGB_Ha = RGB_data['Ha']
-RGB_ID = RGB_data['ID']
-RGB_ID = np.array([a.decode("utf-8") for a in RGB_ID])
+# RGB_ra = RGB_data['ra']
+# RGB_ra = np.array([a.decode("utf-8") for a in RGB_ra])
+# RGB_dec = RGB_data['dec']
+# RGB_dec = np.array([a.decode("utf-8") for a in RGB_dec])
+# RGB_vel = RGB_data['vel']
+# RGB_HI = RGB_data['HI']
+# RGB_CO = RGB_data['CO']
+# RGB_Ha = RGB_data['Ha']
+# RGB_ID = RGB_data['ID']
+# RGB_ID = np.array([a.decode("utf-8") for a in RGB_ID])
+
+young_ra = young_data['ra']
+young_ra = np.array([a.decode("utf-8") for a in young_ra])
+young_dec = young_data['dec']
+young_dec = np.array([a.decode("utf-8") for a in young_dec])
+young_vel = young_data['vel']
+young_HI = young_data['HI']
+young_CO = young_data['CO']
+young_Ha = young_data['Ha']
+young_ID = young_data['ID']
+young_ID = np.array([a.decode("utf-8") for a in young_ID])
+
+old_ra = old_data['ra']
+old_ra = np.array([a.decode("utf-8") for a in old_ra])
+old_dec = old_data['dec']
+old_dec = np.array([a.decode("utf-8") for a in old_dec])
+old_vel = old_data['vel']
+old_HI = old_data['HI']
+old_CO = old_data['CO']
+old_Ha = old_data['Ha']
+old_ID = old_data['ID']
+old_ID = np.array([a.decode("utf-8") for a in old_ID])
 
 #plotting and saving data ====================================================================================================
 def single_plot():
@@ -128,8 +153,9 @@ def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs, galaxy): #will return a fil
 	plt.close()
 
 # outputs(MS_vel, MS_HI, MS_CO, MS_Ha, MS_ra, MS_dec, 'MS', MS_ID)
-outputs(HeB_vel, HeB_HI, HeB_CO, HeB_Ha, HeB_ra, HeB_dec, 'HeB', HeB_ID, 'M33')
-outputs(AGB_vel, AGB_HI, AGB_CO, AGB_Ha, AGB_ra, AGB_dec, 'AGB', AGB_ID, 'M33')
-outputs(RGB_vel, RGB_HI, RGB_CO, RGB_Ha, RGB_ra, RGB_dec, 'RGB', RGB_ID, 'M33')
-
+# outputs(HeB_vel, HeB_HI, HeB_CO, HeB_Ha, HeB_ra, HeB_dec, 'HeB', HeB_ID, 'M33')
+# outputs(AGB_vel, AGB_HI, AGB_CO, AGB_Ha, AGB_ra, AGB_dec, 'AGB', AGB_ID, 'M33')
+# outputs(RGB_vel, RGB_HI, RGB_CO, RGB_Ha, RGB_ra, RGB_dec, 'RGB', RGB_ID, 'M33')
+outputs(young_vel, young_HI, young_CO, young_Ha, young_ra, young_dec, 'young', young_ID, 'M33')
+outputs(old_vel, old_HI, old_CO, old_Ha, old_ra, old_dec, 'old', old_ID, 'M33')
 

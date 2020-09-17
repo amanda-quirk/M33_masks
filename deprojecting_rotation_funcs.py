@@ -16,7 +16,7 @@ def correct_vel(ra, dec, time, redshift, aband):
 	vcorr = vraw + heliocorr_km_s
 	return vcorr.value, vcorr_aband.value #km/s
 
-def deprojection_geo(ra, dec, galaxy):
+def deprojection_geo(ra, dec, galaxy, unit='hourangle'):
 	#get all the galaxy info
 	if galaxy == 'M33':
 		galaxy_ra = 23.4583 #deg
@@ -39,7 +39,11 @@ def deprojection_geo(ra, dec, galaxy):
 
 	#find xi and eta
 	gal = SkyCoord(galaxy_ra * u.deg, galaxy_dec * u.deg)
-	sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle,u.deg))
+
+	if unit == 'hourangle':
+		sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle,u.deg))
+	else:
+		sc = SkyCoord(ra=ra, dec=dec, unit=(u.deg,u.deg))
 	c_in_gal = sc.transform_to(gal.skyoffset_frame())
 	xi, eta = c_in_gal.lon, c_in_gal.lat
 	xi = xi.degree

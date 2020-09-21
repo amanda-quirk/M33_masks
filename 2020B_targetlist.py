@@ -8,7 +8,7 @@ from matplotlib import rc
 import h5py
 
 #read in the PAndAS catalogue ========================================================================================================
-ra, dec, g, dg, flag1, i, di, flag2 = np.loadtxt('../Data/PAndAS_.8deg.tsv', unpack = True)
+ra, dec, g_mag, dg, flag1, i_mag, di, flag2 = np.loadtxt('../Data/PAndAS_.8deg.tsv', unpack = True)
 isolation_file = h5py.File('/Volumes/Titan/M33/Data/PAndAS_isolation_tag.hdf5', 'r') 
 isolation_tag = isolation_file["isolation_tag"][...] #[...] loads the data; 1 means it is NOT isolated 
 
@@ -20,8 +20,8 @@ emap = sfdmap.SFDMap('../Data/sfddata-master/', scaling=1.0)
 coords = SkyCoord(ra=ra, dec=dec, unit=(u.deg, u.deg))
 extinct_map = emap.ebv(coords)
 
-g_ext = g - extinct_map * sdss_g
-i_ext = i - extinct_map * sdss_i
+g_ext = g_mag - extinct_map * sdss_g
+i_ext = i_mag - extinct_map * sdss_i
 
 #calcualte deprojected geo ==========================================================================================================
 star = (flag1 == -1) & (flag2 == -1) #let's look at things that are most likely to be stars
@@ -30,8 +30,8 @@ xi, eta, alpha, beta, dist, PA, theta, assigned_PA, assigned_i = deprojection_ge
 
 #calculate color and minimum brightnesses
 color = g_ext - i_ext
-bright = i_ext < 22 #what we'll target for spectroscopy
-minimum_bright = i_ext < 24
+bright = i_mag < 22 #what we'll target for spectroscopy
+minimum_bright = i_mag < 24
 
 #calculate bins and make CMD =======================================================================================================
 # MS = (color < -0.5) & (i_ext > 20)
@@ -153,15 +153,17 @@ minimum_bright = i_ext < 24
 #actually start the target list stuff!!! ============================================================================================
 required = minimum_bright * isolated * star #want things to be bright and isolated and likely point sources, since the catalogue is big enough
 coords = coords[required]
+i_mag = i_mag[required] #not using extincton corrected values for alignment stars
+g_mag = g_mag[required] #not using extincton corrected values for alignment stars
 i_ext = i_ext[required]
 g_ext = g_ext[required]
 color = color[required]
-list_num = np.ones(len(i_ext)) 
-priority = np.zeros(len(i_ext)) 
+list_num = np.ones(len(i_mag)) 
+priority = np.zeros(len(i_mag)) 
 
 #list assignments
-for i in range(len(i_ext)):
-	if ((i_ext[i] > 15) & (i_ext[i] < 19)) | ((g_ext[i] > 15) & (g_ext[i] < 19)): #alignment/guide stars
+for i in range(len(i_mag)):
+	if ((i_mag[i] > 15) & (i_mag[i] < 19)) | ((g_mag[i] > 15) & (g_mag[i] < 19)): #alignment/guide stars
 		list_num[i] = 0
 
 #priorities
@@ -177,7 +179,7 @@ filter_tag = ['I' for x in range(0, len(i_ext))]
 selection_tag = np.zeros(i_ext)
 
 #save the data
-np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist.in', np.c_[ID, coords, JD, i_ext, filter_tag, priority, list_num, selection_tag])
+np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist.in', np.c_[ID, coords, JD, i_mag, filter_tag, priority, list_num, selection_tag])
 
 
 

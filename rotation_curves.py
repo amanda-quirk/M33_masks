@@ -8,59 +8,57 @@ takes the output of smoothing_pos_vel and returns rotation curves and AD hists
 '''
 
 #read in the smoothed data ====================================================================================================
-#data has header: ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter
-#MS_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_MS.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
-# HeB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_HeB_all.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
-# AGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_AGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
-# RGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_RGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
-
-young_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_young.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
-old_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_old.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual')
+#data has header: ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter, radius
+MS_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_MS.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
+HeB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_HeB_all.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
+AGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_AGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
+RGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_RGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
+young_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_young.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
 
 #grab the parameters we care about here
-# MS_ra = MS_data['ra']
-# MS_ra = np.array([a.decode("utf-8") for a in MS_ra])
-# MS_dec = MS_data['dec']
-# MS_dec = np.array([a.decode("utf-8") for a in MS_dec])
-# MS_vel = MS_data['vel']
-# MS_HI = MS_data['HI']
-# MS_CO = MS_data['CO']
-# MS_Ha = MS_data['Ha']
-# MS_ID = MS_data['ID']
-# MS_ID = np.array([a.decode("utf-8") for a in MS_ID])
+MS_ra = MS_data['ra']
+MS_ra = np.array([a.decode("utf-8") for a in MS_ra])
+MS_dec = MS_data['dec']
+MS_dec = np.array([a.decode("utf-8") for a in MS_dec])
+MS_vel = MS_data['vel']
+MS_HI = MS_data['HI']
+MS_CO = MS_data['CO']
+MS_Ha = MS_data['Ha']
+MS_ID = MS_data['ID']
+MS_ID = np.array([a.decode("utf-8") for a in MS_ID])
 
-# HeB_ra = HeB_data['ra']
-# HeB_ra = np.array([a.decode("utf-8") for a in HeB_ra])
-# HeB_dec = HeB_data['dec']
-# HeB_dec = np.array([a.decode("utf-8") for a in HeB_dec])
-# HeB_vel = HeB_data['vel']
-# HeB_HI = HeB_data['HI']
-# HeB_CO = HeB_data['CO']
-# HeB_Ha = HeB_data['Ha']
-# HeB_ID = HeB_data['ID']
-# HeB_ID = np.array([a.decode("utf-8") for a in HeB_ID])
+HeB_ra = HeB_data['ra']
+HeB_ra = np.array([a.decode("utf-8") for a in HeB_ra])
+HeB_dec = HeB_data['dec']
+HeB_dec = np.array([a.decode("utf-8") for a in HeB_dec])
+HeB_vel = HeB_data['vel']
+HeB_HI = HeB_data['HI']
+HeB_CO = HeB_data['CO']
+HeB_Ha = HeB_data['Ha']
+HeB_ID = HeB_data['ID']
+HeB_ID = np.array([a.decode("utf-8") for a in HeB_ID])
 
-# AGB_ra = AGB_data['ra']
-# AGB_ra = np.array([a.decode("utf-8") for a in AGB_ra])
-# AGB_dec = AGB_data['dec']
-# AGB_dec = np.array([a.decode("utf-8") for a in AGB_dec])
-# AGB_vel = AGB_data['vel']
-# AGB_HI = AGB_data['HI']
-# AGB_CO = AGB_data['CO']
-# AGB_Ha = AGB_data['Ha']
-# AGB_ID = AGB_data['ID']
-# AGB_ID = np.array([a.decode("utf-8") for a in AGB_ID])
+AGB_ra = AGB_data['ra']
+AGB_ra = np.array([a.decode("utf-8") for a in AGB_ra])
+AGB_dec = AGB_data['dec']
+AGB_dec = np.array([a.decode("utf-8") for a in AGB_dec])
+AGB_vel = AGB_data['vel']
+AGB_HI = AGB_data['HI']
+AGB_CO = AGB_data['CO']
+AGB_Ha = AGB_data['Ha']
+AGB_ID = AGB_data['ID']
+AGB_ID = np.array([a.decode("utf-8") for a in AGB_ID])
 
-# RGB_ra = RGB_data['ra']
-# RGB_ra = np.array([a.decode("utf-8") for a in RGB_ra])
-# RGB_dec = RGB_data['dec']
-# RGB_dec = np.array([a.decode("utf-8") for a in RGB_dec])
-# RGB_vel = RGB_data['vel']
-# RGB_HI = RGB_data['HI']
-# RGB_CO = RGB_data['CO']
-# RGB_Ha = RGB_data['Ha']
-# RGB_ID = RGB_data['ID']
-# RGB_ID = np.array([a.decode("utf-8") for a in RGB_ID])
+RGB_ra = RGB_data['ra']
+RGB_ra = np.array([a.decode("utf-8") for a in RGB_ra])
+RGB_dec = RGB_data['dec']
+RGB_dec = np.array([a.decode("utf-8") for a in RGB_dec])
+RGB_vel = RGB_data['vel']
+RGB_HI = RGB_data['HI']
+RGB_CO = RGB_data['CO']
+RGB_Ha = RGB_data['Ha']
+RGB_ID = RGB_data['ID']
+RGB_ID = np.array([a.decode("utf-8") for a in RGB_ID])
 
 young_ra = young_data['ra']
 young_ra = np.array([a.decode("utf-8") for a in young_ra])
@@ -72,17 +70,6 @@ young_CO = young_data['CO']
 young_Ha = young_data['Ha']
 young_ID = young_data['ID']
 young_ID = np.array([a.decode("utf-8") for a in young_ID])
-
-old_ra = old_data['ra']
-old_ra = np.array([a.decode("utf-8") for a in old_ra])
-old_dec = old_data['dec']
-old_dec = np.array([a.decode("utf-8") for a in old_dec])
-old_vel = old_data['vel']
-old_HI = old_data['HI']
-old_CO = old_data['CO']
-old_Ha = old_data['Ha']
-old_ID = old_data['ID']
-old_ID = np.array([a.decode("utf-8") for a in old_ID])
 
 #plotting and saving data ====================================================================================================
 def single_plot():
@@ -128,9 +115,9 @@ def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs, galaxy): #will return a fil
 	single_plot()
 	plt.scatter(dist, vrot_star, c='r', label='{}'.format(age))
 	#plt.scatter(dist, vrot0_star, c='b') #comp for sanity check of the rotation velocities
-	plt.scatter(dist, vrot_HI, c='darkgrey', label='HI')
-	plt.scatter(dist, vrot_CO, c='teal', label='CO')
-	plt.scatter(dist, vrot_Ha, c='b', label='Ha')
+	plt.scatter(dist, vrot_HI, c='darkgrey', label='HI', s=3, alpha=.8)
+	plt.scatter(dist, vrot_CO, c='teal', label='CO', alpha=.8)
+	plt.scatter(dist, vrot_Ha, c='b', label='Ha', alpha=.8)
 	plt.xlabel('Deprojected R [kpc]')
 	plt.ylabel('V rot titled ring [kpc]')
 	plt.ylim(0, 300)
@@ -152,10 +139,9 @@ def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs, galaxy): #will return a fil
 	plt.savefig('/Volumes/Titan/M33/Plots/{}_ad.png'.format(age))
 	plt.close()
 
-# outputs(MS_vel, MS_HI, MS_CO, MS_Ha, MS_ra, MS_dec, 'MS', MS_ID)
-# outputs(HeB_vel, HeB_HI, HeB_CO, HeB_Ha, HeB_ra, HeB_dec, 'HeB', HeB_ID, 'M33')
-# outputs(AGB_vel, AGB_HI, AGB_CO, AGB_Ha, AGB_ra, AGB_dec, 'AGB', AGB_ID, 'M33')
-# outputs(RGB_vel, RGB_HI, RGB_CO, RGB_Ha, RGB_ra, RGB_dec, 'RGB', RGB_ID, 'M33')
+outputs(MS_vel, MS_HI, MS_CO, MS_Ha, MS_ra, MS_dec, 'MS', MS_ID, 'M33')
+outputs(HeB_vel, HeB_HI, HeB_CO, HeB_Ha, HeB_ra, HeB_dec, 'HeB', HeB_ID, 'M33')
+outputs(AGB_vel, AGB_HI, AGB_CO, AGB_Ha, AGB_ra, AGB_dec, 'AGB', AGB_ID, 'M33')
+outputs(RGB_vel, RGB_HI, RGB_CO, RGB_Ha, RGB_ra, RGB_dec, 'RGB', RGB_ID, 'M33')
 outputs(young_vel, young_HI, young_CO, young_Ha, young_ra, young_dec, 'young', young_ID, 'M33')
-outputs(old_vel, old_HI, old_CO, old_Ha, old_ra, old_dec, 'old', old_ID, 'M33')
 

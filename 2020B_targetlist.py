@@ -3,16 +3,19 @@ import matplotlib.pyplot as plt
 import sfdmap 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-from deprojecting_rotation_funcs import deprojection_geo
+#from deprojecting_rotation_funcs import deprojection_geo
 from matplotlib import rc
 import h5py
+# from shapely.geometry import Point
+# from shapely.geometry.polygon import Polygon
 
-#read in the PAndAS catalogue ========================================================================================================
+#read in the PAndAS catalogue =======================================================================================================
 ra, dec, g_mag, dg, flag1, i_mag, di, flag2 = np.loadtxt('../Data/PAndAS_.8deg.tsv', unpack = True)
 isolation_file = h5py.File('/Volumes/Titan/M33/Data/PAndAS_isolation_tag.hdf5', 'r') 
 isolation_tag = isolation_file["isolation_tag"][...] #[...] loads the data; 1 means it is NOT isolated 
+print('Read in all the data')
 
-#apply extinction corrections ========================================================================================================
+#apply extinction corrections =======================================================================================================
 sdss_g = 3.303
 sdss_i = 1.698
 
@@ -22,28 +25,42 @@ extinct_map = emap.ebv(coords)
 
 g_ext = g_mag - extinct_map * sdss_g
 i_ext = i_mag - extinct_map * sdss_i
+print('Did the extinction corrections')
 
 #calcualte deprojected geo ==========================================================================================================
 star = (flag1 == -1) & (flag2 == -1) #let's look at things that are most likely to be stars
 isolated = isolation_tag == 0
-xi, eta, alpha, beta, dist, PA, theta, assigned_PA, assigned_i = deprojection_geo(ra, dec, 'M33', unit='deg')
+#xi, eta, alpha, beta, dist, PA, theta, assigned_PA, assigned_i = deprojection_geo(ra, dec, 'M33', unit='deg')
 
 #calculate color and minimum brightnesses
 color = g_ext - i_ext
 bright = i_mag < 22 #what we'll target for spectroscopy
 minimum_bright = i_mag < 24
 
-#calculate bins and make CMD =======================================================================================================
+# #calculate bins and make CMD =======================================================================================================
 # MS = (color < -0.5) & (i_ext > 20)
 # HeB = (color > 0.75) & (color < 1.3) & (i_ext < 21.5)
 # AGB = (i_ext < 20.75) & (i_ext > 20) & (color > 1.6)
 # RGB = (color > 0.5) & (i_ext > 21) 
+# # RGB_poly = Polygon([(1.4, 21), (2.4, 21.25), (3.55, 21.9), (3, 21.89), (2.6, 21.95), (1.9, 22.5), (1.8, 22.8), (1.5, 23.4), (1.2, 24.9), (.43, 23.25), (1.1, 22)])
+# # HeB_poly = Polygon([(.8, 22), (1.1, 19.5), (1.4, 18), (1.8, 19), (1.6, 20), (1.1, 22)])
+# # AGB_poly = Polygon([(1.4, 21), (2.4, 21.25), (3.55, 21.9), (3.55, 20), (1.8, 20)])
+# # RGB_flag = np.zeros(len(i_ext))
+# # HeB_flag = np.zeros(len(i_ext))
+# # AGB_flag = np.zeros(len(i_ext))
+# # for i in range(len(i_ext)):
+# # 	point = Point(color[i], i_ext[i])
+# # 	if RGB_poly.contains(point) == True:
+# # 		RGB_flag[i] = 1
+# # 	elif HeB_poly.contains(point) == True:
+# # 		HeB_flag[i] = 1
+# # 	elif AGB_poly.contains(point) == True:
+# # 		AGB_flag[i] = 1
 
-# distance_range1 = (dist > 6) & (dist < 8)
-# distance_range2 = (dist > 8) & (dist < 10)
-# distance_range3 = (dist > 10) & (dist < 12)
-# distance_range4 = (dist > 12) & (dist < 14)
-# far = (dist > 14)
+# # MS = (color < -0.5) & (i_ext > 20)
+# # HeB = HeB_flag == 1
+# # AGB = AGB_flag == 1
+# # RGB = RGB_flag == 1
 
 # def plot_CMD(distance_range, label, name):
 # 	#population statistics
@@ -90,9 +107,33 @@ minimum_bright = i_mag < 24
 # 	plt.savefig('/Users/amandaquirk/Desktop/PAndAS_{}_isolated.png'.format(name))
 # 	plt.close()
 
-# plot_CMD(distance_range1, '6 to 8 kpc', '6-8')
-# plot_CMD(distance_range2, '8 to 10 kpc', '8-10')
-# plot_CMD(distance_range3, '10 to 12 kpc', '10-12')
+# distance_range1 = (dist > 7) & (dist < 8)
+# distance_range2 = (dist > 8) & (dist < 9)
+# distance_range3 = (dist > 9) & (dist < 10)
+# distance_range4 = (dist > 12) & (dist < 14)
+# far = (dist > 14)
+
+# def calc_num_density(rout, rin, distance_range):
+# 	#population statistics
+# 	N = sum(minimum_bright * star * distance_range * isolated) #total
+# 	N_bright = sum(bright * star * distance_range * isolated) #total
+# 	num_MS =  sum(minimum_bright * star * distance_range * isolated * MS) 
+# 	num_HeB = sum(minimum_bright * star * distance_range * isolated * HeB)
+# 	num_AGB = sum(minimum_bright * star * distance_range * isolated * AGB)
+# 	num_RGB = sum(minimum_bright * star * distance_range * isolated * RGB)
+
+# 	num_MS_bright =  sum(bright * star * distance_range * isolated * MS) 
+# 	num_HeB_bright = sum(bright * star * distance_range * isolated * HeB) 
+# 	num_AGB_bright = sum(bright * star * distance_range * isolated * AGB) 
+# 	num_RGB_bright = sum(bright * star * distance_range * isolated * RGB) 
+
+# 	area = np.pi * (rout**2 - rin**2)
+
+# 	return num_MS / area, num_HeB / area, num_AGB / area, num_RGB / area, num_MS_bright / area, num_HeB_bright / area, num_AGB_bright / area, num_RGB_bright / area
+
+# plot_CMD(distance_range1, '7 to 8 kpc', '7-8')
+# plot_CMD(distance_range2, '8 to 9 kpc', '8-9')
+# plot_CMD(distance_range3, '9 to 10 kpc', '9-10')
 # plot_CMD(distance_range4, '12 to 14 kpc', '12-14')
 # plot_CMD(far, '14 to 20 kpc', '14-20')
 
@@ -161,27 +202,72 @@ color = color[required]
 list_num = np.ones(len(i_mag)) 
 priority = np.zeros(len(i_mag)) 
 
-#list assignments
+#list assignments -- saving list 2 for duplicates if we have repeat positions
 for i in range(len(i_mag)):
-	if ((i_mag[i] > 15) & (i_mag[i] < 19)) | ((g_mag[i] > 15) & (g_mag[i] < 19)): #alignment/guide stars
+	if ((i_mag[i] > 15) & (i_mag[i] < 18.5)) | ((g_mag[i] > 15) & (g_mag[i] < 18.5)): #alignment/guide stars
 		list_num[i] = 0
+	elif color[i] < 0.6: #want to avoid blue stars
+		list_num[i] = 3
+	else:
+		list_num[i] = 1
 
 #priorities
 for i in range(len(i_ext)):
 	if list_num[i] == 0: #guide/alignment stars
 		priority[i] = -2
+	elif list_num[i] == 3:
+		priority[i] = 0 #don't want any blue stars on our masks
+	elif (i_ext[i] > 21) & (i_ext[i] < 22): #really what we want
+		priority[i] = 100
+	elif (i_ext[i] > 20.5) & (i_ext[i] < 21):
+		priority[i] = 55
+	elif (i_ext[i] > 22) & (i_ext[i] < 22.5):
+		priority[i] = 30
+	else:
+		priority[i] = 1
 
+print('Sorted by lists and priorities')
 #exta info for dsimulator <3 
 ID = np.arange(0, len(di))[required] #index in orginal file!!
 formated_coords = coords.to_string('hmsdms', alwayssign=False) #will need to edit by hand to change hms dms to : until I find a better way
 JD = np.zeros(len(i_ext)) + 2000
 filter_tag = ['I' for x in range(0, len(i_ext))]
-selection_tag = np.zeros(i_ext)
+selection_tag = np.zeros(len(i_ext))
 
+print('Saving the data')
 #save the data
-np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist.in', np.c_[ID, coords, JD, i_mag, filter_tag, priority, list_num, selection_tag])
+np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist.in', np.c_[ID, formated_coords, JD, i_mag, filter_tag, priority, list_num, selection_tag], fmt="%-s", delimiter='\t', header='ID, coordinates, coordinate reference frame, magnitude, filter, priority, list assignment, selection flag')
+np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist_check.in', np.c_[ID, formated_coords, i_ext, g_ext, priority, list_num], fmt="%-s", delimiter='\t', header='ID, coordinates, i, g, priority, list assignment')
 
+#testing the target list ============================================================================================================
+data = np.genfromtxt('/Users/amandaquirk/Desktop/2020B_targestlist_check.in', dtype=None, names='ID, ra, dec, i, g, priority, list')
+i_mag = data['i']
+g_mag = data['g']
+priority = data['priority']
+color = g_mag - i_mag
 
+rc('font', family = 'serif')
+fig, ax=plt.subplots(1)
+for axis in ['top','bottom','left','right']:
+        ax.spines[axis].set_linewidth(1)
+ax.tick_params(axis='x',which='both',bottom='on',top='on', direction='out')
+ax.tick_params(axis='x',which='both',top='on', direction='in')
+ax.tick_params(axis='y',which='both',left='on',top='off', direction='out')
+ax.tick_params(axis='y',which='both',right='on', direction='in')
+plt.tick_params(which='both', width=1)
+plt.tick_params(which='major', length=7)
+plt.tick_params(which='minor', length=4)
+plt.tick_params(labelsize=12) 
+plt.minorticks_on()
+
+plt.scatter(color, i_mag, alpha = 0.2, s=.4, c=priority, vmin=-5, vmax=100)
+plt.colorbar()
+plt.xlabel('g - i')
+plt.ylabel('i')
+plt.xlim(-1, 4)
+plt.ylim(24.2, 12)
+plt.savefig('/Users/amandaquirk/Desktop/CMD_target_list.png')
+plt.close()
 
 
 

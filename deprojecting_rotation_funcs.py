@@ -64,7 +64,7 @@ def deprojection_geo(ra, dec, galaxy, unit='hourangle'):
 	#recalculate alpha and beta with tilted ring PA and i values =======================
 	#read in the titled ring parameters
 	if galaxy == 'M31':
-		r_kpc, PA_tr, i_tr = np.loadtxt('data/HI_PA_i_vrot.txt', usecols=(0, 1, 2,), unpack=True)
+		r_kpc, PA_tr, i_tr = np.loadtxt('/Volumes/Titan/clusters/data/HI_PA_i_vrot.txt', usecols=(1, 4, 7,), unpack=True)
 	elif galaxy == 'M33':
 		r_kpc, i_tr, PA_tr = np.loadtxt('../Data/M33_HI_tilted_ring.txt', usecols=(1, 4, 5,), unpack=True)
 	#find the ring that each star fits in
@@ -94,7 +94,7 @@ def deprojection_geo(ra, dec, galaxy, unit='hourangle'):
 	PA = np.arctan2(beta, alpha) 
 	theta = np.arctan2(beta, alpha * np.cos(np.deg2rad(assigned_i)))	
 
-	return xi, eta, alpha, beta, dist, PA, theta, assigned_PA, assigned_i #kpc, kpc, deg, deg, kpc, rad, rad, deg, deg
+	return xi, eta, alpha, beta, dist, PA, theta, assigned_PA, assigned_i #deg, deg, deg, deg, kpc, rad, rad, deg, deg
 
 def vrot_0(vel, ra, dec, galaxy, unit='hourangle'):
 	#get galaxy info

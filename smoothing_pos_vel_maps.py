@@ -34,9 +34,15 @@ mask = data['mask']
 mask = [a.decode("utf-8") for a in mask]
 aband = data['aband']
 
+
+fg = np.genfromtxt('/Volumes/Titan/M33/Data/M33_FG_IDs.txt', dtype=None)
+fg_id = np.array([a.decode("utf-8") for a in fg])
+
 #only look at things that have good quality =============================================================================
-good_qual = ((zqual == 1) | (zqual > 2)) & (vel < 500) & (vel > -500) & (aband * const.c.to(u.km/u.s).value < 80) & (aband * const.c.to(u.km/u.s).value > -80)
-#Karrie also has some SN and zspec notes cuts; maybe look at her complied folder to eliminate FG stars
+qual = ((zqual == 1) | (zqual > 2)) & (vel < 500) & (vel > -500) & (aband * const.c.to(u.km/u.s).value < 80) & (aband * const.c.to(u.km/u.s).value > -80)
+in_m33 = np.invert(np.in1d(ID, fg_id))
+good_qual = qual * in_m33
+#Karrie also has some SN cuts
 print('All data =', len(ID), '; Data that passed cut =', sum(good_qual))
 
 #separate into age bins ======================================================================================================
@@ -48,25 +54,25 @@ young = MS | HeB_all #add weak CN to this later -- will pull from AGB stars
 
 
 # #histograms of LOS v =========================================================================================================
-# plt.hist(vel[MS * good_qual], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[MS * good_qual])), round(np.std(vel[MS * good_qual]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='b')
-# plt.legend()
-# plt.savefig('/Volumes/Titan/M33/Plots/MS_vel_hist.png')
-# plt.close()
+plt.hist(vel[MS * good_qual], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[MS * good_qual])), round(np.std(vel[MS * good_qual]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='b')
+plt.legend()
+plt.savefig('/Volumes/Titan/M33/Plots/MS_vel_hist.png')
+plt.close()
 
-# plt.hist(vel[AGB * good_qual], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[AGB * good_qual])), round(np.std(vel[AGB * good_qual]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='green')
-# plt.legend()
-# plt.savefig('/Volumes/Titan/M33/Plots/AGB_vel_hist.png')
-# plt.close()
+plt.hist(vel[AGB * good_qual], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[AGB * good_qual])), round(np.std(vel[AGB * good_qual]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='green')
+plt.legend()
+plt.savefig('/Volumes/Titan/M33/Plots/AGB_vel_hist.png')
+plt.close()
 
-# plt.hist(vel[RGB * good_qual], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[RGB * good_qual])), round(np.std(vel[RGB * good_qual]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='red')
-# plt.legend()
-# plt.savefig('/Volumes/Titan/M33/Plots/RGB_vel_hist.png')
-# plt.close()
+plt.hist(vel[RGB * good_qual], bins=range(-300, 100, 15), label=r'$\mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[RGB * good_qual])), round(np.std(vel[RGB * good_qual]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='red')
+plt.legend()
+plt.savefig('/Volumes/Titan/M33/Plots/RGB_vel_hist.png')
+plt.close()
 
-# plt.hist(vel[HeB_all * good_qual], bins=range(-300, 100, 15), label=r'$all\ \mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[HeB_all * good_qual])), round(np.std(vel[HeB_all * good_qual]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='black')
-# plt.legend()
-# plt.savefig('/Volumes/Titan/M33/Plots/HeB_vel_hist.png')
-# plt.close()
+plt.hist(vel[HeB_all * good_qual], bins=range(-300, 100, 15), label=r'$all\ \mu, \sigma$' + r'$={}\ , {}$'.format(round(np.median(vel[HeB_all * good_qual])), round(np.std(vel[HeB_all * good_qual]))) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='black')
+plt.legend()
+plt.savefig('/Volumes/Titan/M33/Plots/HeB_vel_hist.png')
+plt.close()
 
 # #smoothing ===================================================================================================================
 #function to calculate the weights
@@ -262,7 +268,7 @@ position_map(ra[RGB * good_qual], dec[RGB * good_qual], vel[RGB * good_qual], RG
 position_map(ra[young * good_qual], dec[young * good_qual], vel[young * good_qual], young_smoothed_data[0], young_smoothed_data[1], young_smoothed_data[2], young_smoothed_data[4], young_smoothed_data[-1], 14.12, 'Younger Populations')
 
 
-# #save the data into catalogues  ==============================================================================================
+# # #save the data into catalogues  ==============================================================================================
 #I am being lazy and saving as separate files. might be easier in the future to save as one file but who knows
 np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_MS.txt', np.c_[MS_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter, smoothing circle radius')
 np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_smoothed_kinematics_AGB.txt', np.c_[AGB_smoothed_data], fmt='%s', delimiter='\t', header='ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter, smoothing circle radius')

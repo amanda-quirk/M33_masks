@@ -4,7 +4,7 @@ from astropy import constants as const
 from astropy import units as u
 from astropy.time import Time
 
-def correct_vel(ra, dec, time, redshift, aband):
+def correct_vel(ra, dec, time, redshift, aband, apply_aband=False):
 	# from astropy.utils.iers import conf
 	# conf.auto_max_age = None #astropy told me to do this 
 	sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
@@ -14,7 +14,10 @@ def correct_vel(ra, dec, time, redshift, aband):
 	vraw = redshift * const.c.to(u.km/u.s)
 	vcorr_aband = vraw + heliocorr_km_s - aband * const.c.to(u.km/u.s)
 	vcorr = vraw + heliocorr_km_s
-	return vcorr.value, vcorr_aband.value #km/s
+	if apply_aband==False:
+		return vcorr.value
+	else:
+		return vcorr_aband.value
 
 def deprojection_geo(ra, dec, galaxy, unit='hourangle'):
 	#get all the galaxy info
@@ -93,7 +96,7 @@ def deprojection_geo(ra, dec, galaxy, unit='hourangle'):
 
 	return xi, eta, alpha, beta, dist, PA, theta, assigned_PA, assigned_i #kpc, kpc, deg, deg, kpc, rad, rad, deg, deg
 
-def vrot_0(vel, ra, dec, galaxy):
+def vrot_0(vel, ra, dec, galaxy, unit='hourangle'):
 	#get galaxy info
 	if galaxy == 'M33':
 		galaxy_sys_v = -180 #km/s
@@ -103,11 +106,11 @@ def vrot_0(vel, ra, dec, galaxy):
 		print('You do not study that galaxy!!')
 
 	vsys = galaxy_sys_v #km/s
-	pos_data = deprojection_geo(ra, dec, galaxy)
+	pos_data = deprojection_geo(ra, dec, galaxy, unit)
 	vrot = abs((vel - vsys) / (np.cos(pos_data[6]) * np.sin(np.deg2rad(pos_data[-1]))))
 	return vrot
 
-def vrot_tr(vel, ra, dec, galaxy):
+def vrot_tr(vel, ra, dec, galaxy, unit='hourangle'):
 	'''
 	Things to figure out: 
 		-for tan(PA) term: should it be tan(PA_star - PA_TR)? That would be np.tan(pos_data[5] - np.deg2rad(pos_data[-2])). It gives different vrot values than vrot_0, so I am guessing not to do that and that it worked with a different definition of PA?
@@ -121,7 +124,7 @@ def vrot_tr(vel, ra, dec, galaxy):
 		print('You do not study that galaxy!!')
 
 	vsys = galaxy_sys_v #km/s
-	pos_data = deprojection_geo(ra, dec, galaxy)
+	pos_data = deprojection_geo(ra, dec, galaxy, unit)
 	first_term = abs(vel - vsys) / np.sin(np.deg2rad(pos_data[-1])) 
 	sqrt_term = np.sqrt(1 + (np.tan(pos_data[5])**2 / np.cos(np.deg2rad(pos_data[-1]))**2)) 
 	vrot = first_term * sqrt_term

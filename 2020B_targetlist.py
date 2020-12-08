@@ -15,7 +15,7 @@ isolation_file = h5py.File('/Volumes/Titan/M33/Data/PAndAS_isolation_tag.hdf5', 
 isolation_tag = isolation_file["isolation_tag"][...] #[...] loads the data; 1 means it is NOT isolated 
 print('Read in all the data')
 
-#apply extinction corrections =======================================================================================================
+# #apply extinction corrections =======================================================================================================
 sdss_g = 3.303
 sdss_i = 1.698
 
@@ -192,21 +192,126 @@ minimum_bright = i_mag < 24
 # plot_comp_CMD_map(disk_18, disk_18_0, '2018_disk')
 
 #actually start the target list stuff!!! ============================================================================================
-required = minimum_bright * isolated * star #want things to be bright and isolated and likely point sources, since the catalogue is big enough
+# required = minimum_bright * isolated * star * (color > 0.5) #want things to be bright and red and isolated and likely point sources, since the catalogue is big enough
+# coords = coords[required]
+# i_mag = i_mag[required] #not using extincton corrected values for alignment stars
+# g_mag = g_mag[required] #not using extincton corrected values for alignment stars
+# i_ext = i_ext[required]
+# g_ext = g_ext[required]
+# color = color[required]
+# list_num = np.ones(len(i_mag)) 
+# priority = np.zeros(len(i_mag)) 
+
+# #list assignments -- saving list 2 for duplicates if we have repeat positions
+# for i in range(len(i_mag)):
+# 	if ((i_mag[i] > 15) & (i_mag[i] < 19)) | ((g_mag[i] > 15) & (g_mag[i] < 19)): #alignment/guide stars
+# 		list_num[i] = 0
+# 	elif (i_ext[i] > 22.5) | (i_ext[i] < 20.5):
+# 		list_num[i] = 2
+# 	else:
+# 		list_num[i] = 1
+
+# #priorities
+# for i in range(len(i_ext)):
+# 	if list_num[i] == 0: #guide/alignment stars
+# 		priority[i] = -2
+# 	elif (i_ext[i] > 21) & (i_ext[i] < 22): #really what we want
+# 		priority[i] = 100
+# 	elif (i_ext[i] > 20.5) & (i_ext[i] < 21):
+# 		priority[i] = 55
+# 	elif (i_ext[i] > 22) & (i_ext[i] < 22.5):
+# 		priority[i] = 30
+# 	elif (i_ext[i] > 20) & (i_ext[i] < 20.5):
+# 		priority[i] = 10
+# 	elif (i_ext[i] > 22.5) & (i_ext[i] < 23):
+# 		priority[i] = 10
+# 	else:
+# 		priority[i] = 1
+
+# print('Sorted by lists and priorities')
+# #exta info for dsimulator <3 
+# ID = np.arange(0, len(di))[required] #index in orginal file!!
+# formated_coords = coords.to_string('hmsdms', alwayssign=False) #will need to edit by hand to change hms dms to : until I find a better way
+# JD = np.zeros(len(i_ext)) + 2000
+# filter_tag = ['I' for x in range(0, len(i_ext))]
+# selection_tag = np.zeros(len(i_ext))
+
+# print('Saving the data')
+# #save the data
+# np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist.in', np.c_[ID, formated_coords, JD, i_mag, filter_tag, priority, list_num, selection_tag], fmt="%-s", delimiter='\t', header='ID, coordinates, coordinate reference frame, magnitude, filter, priority, list assignment, selection flag')
+# np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist_check.in', np.c_[ID, formated_coords, i_ext, g_ext, priority, list_num], fmt="%-s", delimiter='\t', header='ID, coordinates, i, g, priority, list assignment')
+
+#testing the target list ============================================================================================================
+# data = np.genfromtxt('/Users/amandaquirk/Desktop/2020B_targestlist_check.in', dtype=None, names='ID, ra, dec, i, g, priority, list')
+# i_mag = data['i']
+# g_mag = data['g']
+# priority = data['priority']
+# ID = data['ID']
+# color = g_mag - i_mag
+# ID = list(ID)
+# print('read in target list')
+
+# ID_selected = np.loadtxt('/Users/amandaquirk/Desktop/selected_2020.txt')
+# print('read in selected IDs')
+
+# i_mag_selected = np.zeros(len(ID_selected))
+# color_selected = np.zeros(len(ID_selected))
+# #priority_selected = np.zeros(len(ID_selected))
+# for i in range(len(ID_selected)):
+# 	N = ID.index(ID_selected[i])
+# 	i_mag_selected[i] = i_mag[N]
+# 	color_selected[i] = color[N]
+# 	#priority_selected[i] = priority[N]
+# print('did the matching')
+
+# rc('font', family = 'serif')
+# fig, ax=plt.subplots(1)
+# for axis in ['top','bottom','left','right']:
+#         ax.spines[axis].set_linewidth(1)
+# ax.tick_params(axis='x',which='both',bottom='on',top='on', direction='out')
+# ax.tick_params(axis='x',which='both',top='on', direction='in')
+# ax.tick_params(axis='y',which='both',left='on',top='off', direction='out')
+# ax.tick_params(axis='y',which='both',right='on', direction='in')
+# plt.tick_params(which='both', width=1)
+# plt.tick_params(which='major', length=7)
+# plt.tick_params(which='minor', length=4)
+# plt.tick_params(labelsize=12) 
+# plt.minorticks_on()
+
+# plt.scatter(color_selected, i_mag_selected, alpha=.7, s=2)#alpha = 0.2, s=.4, c=priority_selected, vmin=-5, vmax=100)
+# #plt.colorbar()
+# plt.xlabel('g - i')
+# plt.ylabel('i')
+# plt.xlim(0, 4)
+# plt.ylim(24.2, 16)
+# plt.savefig('/Users/amandaquirk/Desktop/CMD_selected.png')
+# plt.close()
+
+#doing the target list for repeated positions ==================================================================================
+required = minimum_bright * isolated * star * (color > 0.5) #want things to be bright and red and isolated and likely point sources, since the catalogue is big enough
 coords = coords[required]
 i_mag = i_mag[required] #not using extincton corrected values for alignment stars
 g_mag = g_mag[required] #not using extincton corrected values for alignment stars
 i_ext = i_ext[required]
 g_ext = g_ext[required]
 color = color[required]
+ID = np.arange(0, len(di))[required] #index in orginal file!!
 list_num = np.ones(len(i_mag)) 
 priority = np.zeros(len(i_mag)) 
 
+ID_selected = np.loadtxt('/Users/amandaquirk/Desktop/selected_2020.txt')
+on_mask_flag = np.zeros(len(ID))
+for i in range(len(ID)):
+	if ID[i] in ID_selected:
+		on_mask_flag[i] = 1
+
 #list assignments -- saving list 2 for duplicates if we have repeat positions
 for i in range(len(i_mag)):
-	if ((i_mag[i] > 15) & (i_mag[i] < 18.5)) | ((g_mag[i] > 15) & (g_mag[i] < 18.5)): #alignment/guide stars
+	if ((i_mag[i] > 15) & (i_mag[i] < 19)) | ((g_mag[i] > 15) & (g_mag[i] < 19)): #alignment/guide stars
 		list_num[i] = 0
-	elif color[i] < 0.6: #want to avoid blue stars
+	elif on_mask_flag[i] == 1:
+		list_num[i] = 2
+	elif (i_ext[i] > 22.5) | (i_ext[i] < 20.5):
 		list_num[i] = 3
 	else:
 		list_num[i] = 1
@@ -215,14 +320,16 @@ for i in range(len(i_mag)):
 for i in range(len(i_ext)):
 	if list_num[i] == 0: #guide/alignment stars
 		priority[i] = -2
-	elif list_num[i] == 3:
-		priority[i] = 0 #don't want any blue stars on our masks
 	elif (i_ext[i] > 21) & (i_ext[i] < 22): #really what we want
 		priority[i] = 100
 	elif (i_ext[i] > 20.5) & (i_ext[i] < 21):
 		priority[i] = 55
 	elif (i_ext[i] > 22) & (i_ext[i] < 22.5):
 		priority[i] = 30
+	elif (i_ext[i] > 20) & (i_ext[i] < 20.5):
+		priority[i] = 10
+	elif (i_ext[i] > 22.5) & (i_ext[i] < 23):
+		priority[i] = 10
 	else:
 		priority[i] = 1
 
@@ -236,38 +343,7 @@ selection_tag = np.zeros(len(i_ext))
 
 print('Saving the data')
 #save the data
-np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist.in', np.c_[ID, formated_coords, JD, i_mag, filter_tag, priority, list_num, selection_tag], fmt="%-s", delimiter='\t', header='ID, coordinates, coordinate reference frame, magnitude, filter, priority, list assignment, selection flag')
-np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist_check.in', np.c_[ID, formated_coords, i_ext, g_ext, priority, list_num], fmt="%-s", delimiter='\t', header='ID, coordinates, i, g, priority, list assignment')
-
-#testing the target list ============================================================================================================
-data = np.genfromtxt('/Users/amandaquirk/Desktop/2020B_targestlist_check.in', dtype=None, names='ID, ra, dec, i, g, priority, list')
-i_mag = data['i']
-g_mag = data['g']
-priority = data['priority']
-color = g_mag - i_mag
-
-rc('font', family = 'serif')
-fig, ax=plt.subplots(1)
-for axis in ['top','bottom','left','right']:
-        ax.spines[axis].set_linewidth(1)
-ax.tick_params(axis='x',which='both',bottom='on',top='on', direction='out')
-ax.tick_params(axis='x',which='both',top='on', direction='in')
-ax.tick_params(axis='y',which='both',left='on',top='off', direction='out')
-ax.tick_params(axis='y',which='both',right='on', direction='in')
-plt.tick_params(which='both', width=1)
-plt.tick_params(which='major', length=7)
-plt.tick_params(which='minor', length=4)
-plt.tick_params(labelsize=12) 
-plt.minorticks_on()
-
-plt.scatter(color, i_mag, alpha = 0.2, s=.4, c=priority, vmin=-5, vmax=100)
-plt.colorbar()
-plt.xlabel('g - i')
-plt.ylabel('i')
-plt.xlim(-1, 4)
-plt.ylim(24.2, 12)
-plt.savefig('/Users/amandaquirk/Desktop/CMD_target_list.png')
-plt.close()
+np.savetxt('/Users/amandaquirk/Desktop/2020B_targestlist_dup.in', np.c_[ID, formated_coords, JD, i_mag, filter_tag, priority, list_num, selection_tag], fmt="%-s", delimiter='\t', header='ID, coordinates, coordinate reference frame, magnitude, filter, priority, list assignment, selection flag')
 
 
 

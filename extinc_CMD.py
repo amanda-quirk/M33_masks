@@ -223,7 +223,7 @@ hst_f606w = mag1_name == 'F606W'
 # sorted_CMD(hst_f606w, 'hst_f606w')
 
 #save data ===================================================================================================================
-np.savetxt('/Users/amandaquirk/Desktop/M33_2018b_phot_spec_CMD_sorted.txt', np.c_[ID, ra, dec, F275W, F336W, mag1_ext, mag1_name, mag2_ext, mag2_name, F110W, F160W, z, vel, vel_aband, err, zqual, aband, time, mask, age_tag, HI, CO, Ha], fmt='%s', delimiter='\t', header='ID, RA, Dec, F275W, F336W, mag1, mag1 name, mag2, mag2 name, F110W, F160W, redshift, heliocorrected vel (km/s), helio+aband corrected vel (km/s), velocity error (km/s), zquality, A band, MJD, mask name, age tag, HI (km/s), CO (km/s), Halpha (km/s)') 
+np.savetxt('/Volumes/Titan/M33/Data/M33_2018b_phot_spec_CMD_sorted.txt', np.c_[ID, ra, dec, F275W, F336W, mag1_ext, mag1_name, mag2_ext, mag2_name, F110W, F160W, z, vel, vel_aband, err, zqual, aband, time, mask, age_tag, HI, CO, Ha], fmt='%s', delimiter='\t', header='ID, RA, Dec, F275W, F336W, mag1, mag1 name, mag2, mag2 name, F110W, F160W, redshift, heliocorrected vel (km/s), helio+aband corrected vel (km/s), velocity error (km/s), zquality, A band, MJD, mask name, age tag, HI (km/s), CO (km/s), Halpha (km/s)') 
 
 
 

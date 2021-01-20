@@ -114,6 +114,7 @@ def vrot_tr(vel, ra, dec, galaxy, unit='hourangle'):
 	'''
 	Things to figure out: 
 		-for tan(PA) term: should it be tan(PA_star - PA_TR)? That would be np.tan(pos_data[5] - np.deg2rad(pos_data[-2])). It gives different vrot values than vrot_0, so I am guessing not to do that and that it worked with a different definition of PA?
+		-From playing around with the RGB aband vs no aband, I do not get consistent values when I use this formula with the change above -- Thus I think that the formula I used for the 2019 paper needed the PAstar - PAtr whereas I have corrected for it here already so I do not need to do it
 	'''
 	#get galaxy info
 	if galaxy == 'M33':

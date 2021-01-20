@@ -57,7 +57,9 @@ sdss_i = 1.698
 
 #apply the extinction corrections
 num = [len(x) for x in ID] #length of the ID which will help indicate which catalogue it came from
-CFHT = (age == 'CFHT') | (np.array(num) < 6) #F475W ~ SDSS g and F814W ~ SDSS i 
+str_int = [a.isnumeric() for a in ID]
+#Pandas AND CFHT -- same magnitude system; expecting an error below
+CFHT = (age == 'CFHT') | ((np.array(num) < 7) & (str_int == True)) #F475W ~ SDSS g and F814W ~ SDSS i -- the Pandas data has max length of 6
 
 mag1_ext = np.zeros(len(F475W))
 mag2_ext = np.zeros(len(F475W))
@@ -125,7 +127,7 @@ for i in range(len(age)):
 				age_tag[i] = 'AGB'
 			else:
 				age_tag[i] = age[i]
-	elif num[i] < 6: #2016 CHFT data -- same as above
+	elif num[i] < 7: #2016 CHFT data or Pandas data -- same as above
 		point = Point(color[i], mag2_ext[i])
 		RGB_poly = Polygon([(1.4, 21), (2.4, 21.25), (3.55, 21.9), (3, 21.89), (2.6, 21.95), (1.9, 22.5), (1.8, 22.8), (1.5, 23.4), (1.2, 24.9), (.43, 23.25), (1.1, 22)])
 		HeB_poly = Polygon([(.8, 22), (1.1, 19.5), (1.4, 18), (1.8, 19), (1.6, 20), (1.1, 22)])
@@ -218,7 +220,7 @@ def sorted_CMD(label, name):
 hst_f475w = mag1_name == 'F475W'
 hst_f606w = mag1_name == 'F606W'
 
-# sorted_CMD(CFHT, 'CFHT')
+sorted_CMD(CFHT, 'CFHT')
 # sorted_CMD(hst_f475w, 'hst_f475w')
 # sorted_CMD(hst_f606w, 'hst_f606w')
 

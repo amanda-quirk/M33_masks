@@ -9,34 +9,34 @@ takes the output of smoothing_pos_vel and returns rotation curves and AD hists
 
 #read in the smoothed data ====================================================================================================
 #data has header: ra_goodcenter (ha), dec_goodcenter (deg), smoothed_v (km/s), smoothed_err (km/s), dispersion, HI_goodcenter, CO_goodcenter, Ha_goodcenter, ID_goodcenter, zqual_goodcenter, radius
-MS_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_MS.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
-HeB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_HeB_all.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
+#MS_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_MS.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
+#HeB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_HeB_all.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
 AGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_AGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
 RGB_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_RGB.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
 young_data = np.genfromtxt('../Data/M33_2018b_smoothed_kinematics_young.txt', dtype=None, names='ra, dec, vel, err, disp, HI, CO, Ha, ID, zqual, radius')
 
 #grab the parameters we care about here
-MS_ra = MS_data['ra']
-MS_ra = np.array([a.decode("utf-8") for a in MS_ra])
-MS_dec = MS_data['dec']
-MS_dec = np.array([a.decode("utf-8") for a in MS_dec])
-MS_vel = MS_data['vel']
-MS_HI = MS_data['HI']
-MS_CO = MS_data['CO']
-MS_Ha = MS_data['Ha']
-MS_ID = MS_data['ID']
-MS_ID = np.array([a.decode("utf-8") for a in MS_ID])
+# MS_ra = MS_data['ra']
+# MS_ra = np.array([a.decode("utf-8") for a in MS_ra])
+# MS_dec = MS_data['dec']
+# MS_dec = np.array([a.decode("utf-8") for a in MS_dec])
+# MS_vel = MS_data['vel']
+# MS_HI = MS_data['HI']
+# MS_CO = MS_data['CO']
+# MS_Ha = MS_data['Ha']
+# MS_ID = MS_data['ID']
+# MS_ID = np.array([a.decode("utf-8") for a in MS_ID])
 
-HeB_ra = HeB_data['ra']
-HeB_ra = np.array([a.decode("utf-8") for a in HeB_ra])
-HeB_dec = HeB_data['dec']
-HeB_dec = np.array([a.decode("utf-8") for a in HeB_dec])
-HeB_vel = HeB_data['vel']
-HeB_HI = HeB_data['HI']
-HeB_CO = HeB_data['CO']
-HeB_Ha = HeB_data['Ha']
-HeB_ID = HeB_data['ID']
-HeB_ID = np.array([a.decode("utf-8") for a in HeB_ID])
+# HeB_ra = HeB_data['ra']
+# HeB_ra = np.array([a.decode("utf-8") for a in HeB_ra])
+# HeB_dec = HeB_data['dec']
+# HeB_dec = np.array([a.decode("utf-8") for a in HeB_dec])
+# HeB_vel = HeB_data['vel']
+# HeB_HI = HeB_data['HI']
+# HeB_CO = HeB_data['CO']
+# HeB_Ha = HeB_data['Ha']
+# HeB_ID = HeB_data['ID']
+# HeB_ID = np.array([a.decode("utf-8") for a in HeB_ID])
 
 AGB_ra = AGB_data['ra']
 AGB_ra = np.array([a.decode("utf-8") for a in AGB_ra])
@@ -132,15 +132,15 @@ def outputs(vstar, vHI, vCO, vHa, ra, dec, age, IDs, galaxy): #will return a fil
 	AD_Ha = AD_Ha[~np.isnan(AD_Ha)]
 
 	single_plot()
-	plt.hist(AD_HI, bins=range(-100, 200, 10), label='HI' + r'$={}$'.format(round(np.median(AD_HI),2)) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, linestyle='--', stacked=True, fill=False, color='darkgrey')
-	plt.hist(AD_CO, bins=range(-100, 200, 10), label='CO' + r'$={}$'.format(round(np.median(AD_CO),2)) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, linestyle='--', stacked=True, fill=True, hatch='//', color='teal')
-	plt.hist(AD_Ha, bins=range(-100, 200, 10), label='Ha' + r'$={}$'.format(round(np.median(AD_Ha),2)) + r'$\rm \ km \ s^{-1}$', normed=1, histtype='step', linewidth=1.6, stacked=True, fill=False, color='blue')
+	plt.hist(AD_HI, bins=range(-100, 200, 10), label='HI' + r'$={}$'.format(round(np.median(AD_HI),2)) + r'$\rm \ km \ s^{-1}$', density=True, histtype='step', linewidth=1.6, linestyle='--', stacked=True, fill=False, color='darkgrey')
+	plt.hist(AD_CO, bins=range(-100, 200, 10), label='CO' + r'$={}$'.format(round(np.median(AD_CO),2)) + r'$\rm \ km \ s^{-1}$', density=True, histtype='step', linewidth=1.6, linestyle='--', stacked=True, fill=True, hatch='//', color='teal')
+	plt.hist(AD_Ha, bins=range(-100, 200, 10), label='Ha' + r'$={}$'.format(round(np.median(AD_Ha),2)) + r'$\rm \ km \ s^{-1}$', density=True, histtype='step', linewidth=1.6, stacked=True, fill=False, color='blue')
 	plt.legend()
 	plt.savefig('/Volumes/Titan/M33/Plots/{}_ad.png'.format(age))
 	plt.close()
 
-outputs(MS_vel, MS_HI, MS_CO, MS_Ha, MS_ra, MS_dec, 'MS', MS_ID, 'M33')
-outputs(HeB_vel, HeB_HI, HeB_CO, HeB_Ha, HeB_ra, HeB_dec, 'HeB', HeB_ID, 'M33')
+# outputs(MS_vel, MS_HI, MS_CO, MS_Ha, MS_ra, MS_dec, 'MS', MS_ID, 'M33')
+# outputs(HeB_vel, HeB_HI, HeB_CO, HeB_Ha, HeB_ra, HeB_dec, 'HeB', HeB_ID, 'M33')
 outputs(AGB_vel, AGB_HI, AGB_CO, AGB_Ha, AGB_ra, AGB_dec, 'AGB', AGB_ID, 'M33')
 outputs(RGB_vel, RGB_HI, RGB_CO, RGB_Ha, RGB_ra, RGB_dec, 'RGB', RGB_ID, 'M33')
 outputs(young_vel, young_HI, young_CO, young_Ha, young_ra, young_dec, 'young', young_ID, 'M33')

@@ -32,8 +32,9 @@ masks_2016 = ['M33D2A', 'M33D2B', 'M33D3A', 'M33D3B', 'M33D3D', 'M33D4A', 'M33D4
 #the 2018 and 2019 masks
 masks_2018 = ['A1M33P', 'B1M33P', 'C1M33P', 'D1M33P', 'E1M33P','A2M33P', 'B2M33P', 'E2M33P', 'K1M33P', 'C2M33P', 'D2M33P'] #photometry from M33/Data/all_target_list.in; not all of these masks have been zspeced yet so some are commented out
 masks_2019 = ['D1M33R', 'D2M33R', 'E1M33R', 'E2M33R'] #E1M33R photometry from target_list_RGB_2019.in and rest photometry from M33/Masks/2019b/Dec/final/target_list_RGB_2019_expanded.in
-mask_list = masks_2016 + masks_2018 + masks_2019
-
+masks_2020 = ['pTE1', 'pTN1a', 'pTN1b', 'pTN2a', 'pTN2b', 'pTN3', 'pTN4', 'pTN5', 'pTS1', 'pTS2', 'pTS3']
+#photometry comes from ../Data/PAndAS_.8deg.tsv
+mask_list = masks_2016 + masks_2018 + masks_2019 + masks_2020
 #read in the data into one list for each parameter
 all_ids = []
 all_ras = []
@@ -129,7 +130,7 @@ all_decs = corrected_decs #there will be different formats in here but all are t
 
 #deal with duplicate stars ==========================================================================================================================
 #first, let's remove all serendips
-not_serendip = (np.array(all_ids) != 'serendip1') & (np.array(all_ids) != 'serendip2')
+not_serendip = (np.array(all_ids) != 'serendip1') & (np.array(all_ids) != 'serendip2') & (np.array(all_ids) != 'serendip3') & (np.array(all_ids) != 'serendip4') & (np.array(all_ids) != 'serendip5') & (np.array(all_ids) != 'serendip6')
 all_ids = np.array(all_ids)[not_serendip]
 all_ras = np.array(all_ras)[not_serendip]
 all_decs = np.array(all_decs)[not_serendip]
@@ -325,6 +326,12 @@ def import_phot(path):
 		mag3 = ref_data['MAG1_AUTO'] #g #_0 for the extcorr file
 		mag4 = ref_data['MAG2_AUTO'] #i #_0 for the extcorr file 
 		return ref_ID, np.zeros(len(mag3)), np.zeros(len(mag3)), mag3, mag4, np.zeros(len(mag3)), np.zeros(len(mag3))
+	elif path.endswith('tsv'):
+		mag3, mag4 = np.loadtxt('/Volumes/Titan/M33/Data/{}'.format(path), usecols=(2, 5,), unpack = True)
+		ref_ID = np.arange(0, len(mag3))
+		ref_ID = [int(a) for a in ref_ID] #converting from string to int to get rid of extra space
+		ref_ID = [str(a) for a in ref_ID] #converting it back -.- so that it matches sorted_ids
+		return ref_ID, np.zeros(len(mag3)), np.zeros(len(mag3)), mag3, mag4, np.zeros(len(mag3)), np.zeros(len(mag3))
 	else:
 		ref_data = np.genfromtxt('/Volumes/Titan/M33/Data/{}'.format(path), dtype=None, names='ID, ras, decs, frame, F814W, filter1, 	F475W, filter2, priority, list_assignment, selection_flag, F110W, F160W, F275W, F336W')
 		#pull out the fields that Laurent will need / I want for organizational purposes later
@@ -340,7 +347,7 @@ def import_phot(path):
 
 #bringing in the photometry from the 2018 and 2019 data
 print('Reading in photometry')
-paths = ['all_target_list.in', 'target_list_RGB_2019_6filt.in', 'target_list_RGB_2019_expanded_6filt.in', 'HST_all_list3.input.fits', 'M33.GI.matchcat.fits', 'HST_15b_all_nolist3dups.input.fits', 'HST_16b_all_nolist3dups.input.fits'] #need to swap out the current M33 file for M33.GI.matchcat.fits once I get it from Karrie
+paths = ['all_target_list.in', 'target_list_RGB_2019_6filt.in', 'target_list_RGB_2019_expanded_6filt.in', 'HST_all_list3.input.fits', 'M33.GI.matchcat.fits', 'HST_15b_all_nolist3dups.input.fits', 'HST_16b_all_nolist3dups.input.fits', 'PAndAS_.8deg.tsv'] #need to swap out the current M33 file for M33.GI.matchcat.fits once I get it from Karrie
 
 #the arrays below will contain many duplicates but there's no need to remove them
 ref_IDs = []
@@ -396,7 +403,7 @@ for i in range(len(sorted_ids)):
 			age_tag.append('HeB')
 		elif sorted_ids[i].startswith('KG'):
 			age_tag.append('Xray')
-		else: #2016 data is just numbers. Sources with 7 or 8 digit ID numbers are from the HST catalogs. Sources with < 7 digit ID 	numbers are from the CFHT catalog 
+		else: #2016 data is just numbers. Sources with 7 or 8 digit ID numbers are from the HST catalogs. Sources with < 7 digit ID numbers are from the CFHT catalog 
 			age_tag.append('unknown')
 	except ValueError:
 		unmatched_ID.append(sorted_ids[i])
